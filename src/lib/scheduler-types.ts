@@ -114,7 +114,7 @@ export interface JobBooking {
   approvalStatus: "Approved" | "Pending Review" | "Draft";
   remarks?: string;
   pauseDurationMinutes?: number;
-  pauseReason?: string;
+  pauseReason?: string; 
   actualStartTime?: string;   
   actualEndTime?: string;
   isSimulation: boolean;
