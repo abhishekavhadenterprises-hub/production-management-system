@@ -115,7 +115,7 @@ export interface JobBooking {
   remarks?: string;
   pauseDurationMinutes?: number;
   pauseReason?: string;
-  actualStartTime?: string;
+  actualStartTime?: string; 
   actualEndTime?: string;
   isSimulation: boolean;
   virtualBoxStage: "VB1" | "VB2" | "VB3" | "VB4";
