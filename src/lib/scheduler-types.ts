@@ -108,17 +108,21 @@ export interface JobBooking {
   toolSetupMinutes: number;
   programSetupMinutes: number;
   sampleSetupMinutes: number;
-  toolSetupApplied: boolean;
-  programSetupApplied: boolean;
-  sampleSetupApplied: boolean;
-  approvalStatus: "Approved" | "Pending Review" | "Draft";
+  toolSetupApplied?: boolean;
+  programSetupApplied?: boolean;
+  sampleSetupApplied?: boolean;
+  approvalStatus?: "Approved" | "Pending Review" | "Draft";
   remarks?: string;
   pauseDurationMinutes?: number;
   pauseReason?: string; 
   actualStartTime?: string;   
   actualEndTime?: string;
-  isSimulation: boolean;
-  virtualBoxStage: "VB1" | "VB2" | "VB3" | "VB4";
+  startDelayMinutes?: number;
+  startDelayReason?: string;
+  startDelayRemarks?: string;
+  startDelayRecordedAt?: string;
+  isSimulation?: boolean;
+  virtualBoxStage?: "VB1" | "VB2" | "VB3" | "VB4";
 }
 
 export interface TimeSlot {

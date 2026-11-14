@@ -29,6 +29,7 @@ interface MachineScheduleGridProps {
   onSlotClick: (machine: Machine, slot: TimeSlot) => void;
   onBookingClick: (booking: JobBooking) => void;
   onDropComponentOnSlot?: (machine: Machine, slot: TimeSlot, woId: string, compId: string) => void;
+  onRescheduleBooking?: (bookingId: string, machineId: string, machineCode: string, newStartTime: string) => void;
 }
 
 export function MachineScheduleGrid({
@@ -41,6 +42,7 @@ export function MachineScheduleGrid({
   onSlotClick,
   onBookingClick,
   onDropComponentOnSlot,
+  onRescheduleBooking,
 }: MachineScheduleGridProps) {
   const [dragOverSlotKey, setDragOverSlotKey] = React.useState<string | null>(null);
 
@@ -58,12 +60,25 @@ export function MachineScheduleGrid({
     const matchDept =
       selectedDept === "All Departments" || m.department === selectedDept;
 
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return matchStatus && matchDept;
+
+    const machineBookings = bookings.filter((b) => b.machineId === m.id || b.machineCode === m.code);
+    const hasMatchingBooking = machineBookings.some((b) =>
+      b.woNumber.toLowerCase().includes(q) ||
+      b.componentCode.toLowerCase().includes(q) ||
+      b.componentName.toLowerCase().includes(q) ||
+      (b.customer && b.customer.toLowerCase().includes(q)) ||
+      (b.operatorName && b.operatorName.toLowerCase().includes(q)) ||
+      (b.operation && b.operation.toLowerCase().includes(q))
+    );
+
     const matchSearch =
-      !q ||
       m.code.toLowerCase().includes(q) ||
       m.name.toLowerCase().includes(q) ||
-      m.department.toLowerCase().includes(q);
+      m.department.toLowerCase().includes(q) ||
+      m.status.toLowerCase().includes(q) ||
+      hasMatchingBooking;
 
     return matchStatus && matchDept && matchSearch;
   });
@@ -252,16 +267,29 @@ export function MachineScheduleGrid({
                         return (
                           <div
                             key={slot.id}
+                            draggable={true}
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData(
+                                "application/json",
+                                JSON.stringify({
+                                  isExistingBooking: true,
+                                  bookingId: slotBooking.id,
+                                  woId: slotBooking.woId,
+                                  compId: slotBooking.componentCode,
+                                })
+                              );
+                              e.dataTransfer.effectAllowed = "move";
+                            }}
                             onClick={() => onBookingClick(slotBooking)}
                             className={cn(
-                              "flex-1 min-w-[110px] p-1.5 border-r border-[#007AFF]/30 flex flex-col justify-between cursor-pointer transition-all relative overflow-hidden group/card",
+                              "flex-1 min-w-[110px] p-1.5 border-r border-[#007AFF]/30 flex flex-col justify-between cursor-grab active:cursor-grabbing transition-all relative overflow-hidden group/card",
                               slotBooking.status === "running"
                                 ? "bg-[#34C759] text-white shadow-xs"
                                 : slotBooking.status === "paused"
                                 ? "bg-[#FF9500] text-white shadow-xs"
                                 : "bg-[#007AFF] text-white shadow-xs"
                             )}
-                            title={`Booking: ${slotBooking.woNumber} (${slotBooking.componentCode}) - Click for details`}
+                            title={`Booking: ${slotBooking.woNumber} (${slotBooking.componentCode}) - Drag to move or click for details`}
                           >
                             {isFirstSlot ? (
                               <>
@@ -274,8 +302,17 @@ export function MachineScheduleGrid({
                                   </span>
                                 </div>
 
-                                <div className="text-[9px] font-mono truncate opacity-90 mt-0.5">
-                                  {slotBooking.componentCode}
+                                <div className="text-[9px] font-mono truncate opacity-90 mt-0.5 flex items-center justify-between">
+                                  <span>{slotBooking.componentCode}</span>
+                                  {slotBooking.startDelayReason && (
+                                    <span
+                                      className="text-[8px] font-bold px-1 py-0.2 bg-[#FF9500] text-white rounded flex items-center gap-0.5 shadow-2xs"
+                                      title={`Start Delayed (+${slotBooking.startDelayMinutes || 0}m): ${slotBooking.startDelayReason}`}
+                                    >
+                                      <Clock className="w-2.5 h-2.5" />
+                                      <span>+{slotBooking.startDelayMinutes || 0}m</span>
+                                    </span>
+                                  )}
                                 </div>
 
                                 {/* Progress Bar */}
@@ -323,10 +360,14 @@ export function MachineScheduleGrid({
                             e.preventDefault();
                             setDragOverSlotKey(null);
                             const data = e.dataTransfer.getData("application/json");
-                            if (data && onDropComponentOnSlot) {
+                            if (data) {
                               try {
-                                const { woId, compId } = JSON.parse(data);
-                                onDropComponentOnSlot(machine, slot, woId, compId);
+                                const parsed = JSON.parse(data);
+                                if (parsed.isExistingBooking && onRescheduleBooking) {
+                                  onRescheduleBooking(parsed.bookingId, machine.id, machine.code, slot.startHour);
+                                } else if (onDropComponentOnSlot) {
+                                  onDropComponentOnSlot(machine, slot, parsed.woId, parsed.compId);
+                                }
                               } catch (err) {
                                 console.error(err);
                               }

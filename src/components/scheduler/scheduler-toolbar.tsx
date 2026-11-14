@@ -17,6 +17,8 @@ import {
 import { MachineStatus, ShiftType, ViewMode } from "@/lib/scheduler-types";
 import { DEPARTMENTS_LIST } from "@/lib/scheduler-mock-data";
 import { cn } from "@/lib/utils";
+import { PremiumDropdown } from "@/components/ui/premium-dropdown";
+import { PremiumDatePicker } from "@/components/ui/premium-date-picker";
 
 interface SchedulerToolbarProps {
   selectedDate: string;
@@ -196,14 +198,13 @@ export function SchedulerToolbar({
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
-          {/* Date Picker Input */}
-          <div className="flex items-center gap-1 bg-white border border-[#E5E5EA] rounded-xl px-2 py-1 shadow-xs">
-            <Calendar className="w-3.5 h-3.5 text-[#007AFF] shrink-0" />
-            <input
-              type="date"
+          {/* Premium Date Picker */}
+          <div className="w-[145px]">
+            <PremiumDatePicker
               value={selectedDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="text-xs font-medium text-[#1D1D1F] bg-transparent outline-none cursor-pointer"
+              onChange={onDateChange}
+              size="sm"
+              buttonClassName="rounded-xl shadow-xs"
             />
           </div>
 
@@ -242,18 +243,14 @@ export function SchedulerToolbar({
           </button>
 
           {/* Department Dropdown */}
-          <div className="relative">
-            <select
+          <div className="w-[190px]">
+            <PremiumDropdown
               value={selectedDept}
-              onChange={(e) => onDeptChange(e.target.value)}
-              className="text-xs font-medium text-[#1D1D1F] bg-white border border-[#E5E5EA] rounded-xl px-3 py-1.5 shadow-xs outline-none cursor-pointer hover:border-[#D1D1D6] transition-colors"
-            >
-              {DEPARTMENTS_LIST.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+              onChange={onDeptChange}
+              options={DEPARTMENTS_LIST}
+              size="sm"
+              buttonClassName="rounded-xl shadow-xs"
+            />
           </div>
 
           {/* Search Machine */}
@@ -261,11 +258,20 @@ export function SchedulerToolbar({
             <Search className="w-3.5 h-3.5 text-[#86868B] absolute left-2.5 pointer-events-none" />
             <input
               type="text"
-              placeholder="Filter machine by code or name..."
+              placeholder="Filter machine by code, name, job, part..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-8 pr-3 py-1 text-xs bg-[#F5F5F7] border border-transparent focus:border-[#007AFF] focus:bg-white rounded-xl text-[#1D1D1F] placeholder-[#86868B] outline-none transition-all w-52"
+              className="pl-8 pr-7 py-1 text-xs bg-[#F5F5F7] border border-transparent focus:border-[#007AFF] focus:bg-white rounded-xl text-[#1D1D1F] placeholder-[#86868B] outline-none transition-all w-56 sm:w-64"
             />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange("")}
+                className="absolute right-2 text-[10px] text-[#86868B] hover:text-[#1D1D1F] p-0.5 rounded cursor-pointer"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
           </div>
         </div>
 

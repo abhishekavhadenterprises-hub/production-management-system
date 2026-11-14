@@ -61,12 +61,41 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
   // Active module state (defaults to "overview" for the overview dashboard)
   const [activeModule, setActiveModule] = useState<string>("overview");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Global keyboard shortcut: Cmd+K / Ctrl+K to focus search, Esc to clear
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (collapsed && onToggleCollapse) {
+          onToggleCollapse();
+        }
+        setTimeout(() => {
+          searchInputRef.current?.focus();
+          searchInputRef.current?.select();
+        }, 50);
+      }
+      if (e.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setSearchQuery("");
+        searchInputRef.current?.blur();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [collapsed, onToggleCollapse]);
 
   React.useEffect(() => {
     if (currentPath === "/") {
       setActiveModule("overview");
     } else if (currentPath === "/machine-scheduler") {
       setActiveModule("machine-scheduler");
+    } else if (currentPath === "/production") {
+      setActiveModule("production");
+    } else if (currentPath === "/work-orders") {
+      setActiveModule("work-orders");
+    } else if (currentPath === "/bop-transfer") {
+      setActiveModule("bop-transfer");
     }
   }, [currentPath]);
 
@@ -81,7 +110,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
   const primaryModules = [
     {
       id: "overview",
-      label: "Overview",
+      label: "Dashboard Zone",
       icon: LayoutDashboard,
       badge: "Live",
       badgeColor: "bg-[#EAF8EF] text-[#1E823B]",
@@ -99,35 +128,31 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
       id: "production",
       label: "Production",
       icon: Factory,
-      badge: "50",
+      badge: "28",
       badgeColor: "bg-[#EAF8EF] text-[#1E823B]",
-      href: "#",
+      href: "/production",
     },
     {
-      id: "ikp-transfer",
-      label: "IKP Transfer",
-      icon: ArrowLeftRight,
-      href: "#",
+      id: "bop-transfer",
+      label: "BOP Transfer",
+      icon: Boxes,
+      badge: "Store",
+      badgeColor: "bg-[#EAF8EF] text-[#1E823B]",
+      href: "/bop-transfer",
     },
     {
-      id: "work-order-assignment",
-      label: "Work Order Assignment",
+      id: "work-orders",
+      label: "Work Orders",
       icon: ClipboardList,
-      badge: "11",
-      badgeColor: "bg-[#FFF6E9] text-[#A65F00]",
-      href: "#",
+      badge: "SoftGen",
+      badgeColor: "bg-[#E0F2FE] text-[#0284C7]",
+      href: "/work-orders",
     },
     {
       id: "brazing",
       label: "Brazing",
       icon: Flame,
       iconColor: "text-[#FF9500]",
-      href: "#",
-    },
-    {
-      id: "dashboard-zone",
-      label: "Dashboard Zone",
-      icon: LayoutGrid,
       href: "#",
     },
   ];
@@ -403,15 +428,34 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
     },
   ];
 
-  // Filtering based on search query
+  // Clean trimmed search query
+  const trimmedQuery = searchQuery.trim().toLowerCase();
+
+  // Filter primary top modules
   const filteredPrimary = primaryModules.filter((m) =>
-    m.label.toLowerCase().includes(searchQuery.toLowerCase())
+    !trimmedQuery || m.label.toLowerCase().includes(trimmedQuery)
   );
-  const filteredDropdowns = dropdownModules.filter(
-    (d) =>
-      d.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.items.some((item) => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+
+  // Filter dropdown modules and their nested sub-items
+  const filteredDropdowns = dropdownModules
+    .map((dropdown) => {
+      const isParentMatch = dropdown.label.toLowerCase().includes(trimmedQuery);
+      const matchingItems = !trimmedQuery
+        ? dropdown.items
+        : isParentMatch
+        ? dropdown.items
+        : dropdown.items.filter(
+            (item) =>
+              item.label.toLowerCase().includes(trimmedQuery) ||
+              (item.sectionHeader &&
+                item.sectionHeader.toLowerCase().includes(trimmedQuery))
+          );
+      return {
+        ...dropdown,
+        items: matchingItems,
+      };
+    })
+    .filter((dropdown) => dropdown.items.length > 0);
 
   return (
     <aside
@@ -463,6 +507,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
           <div className="relative flex items-center">
             <Search className="w-3.5 h-3.5 text-[#86868B] absolute left-2.5 pointer-events-none" />
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -471,15 +516,23 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
             />
             {searchQuery ? (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 text-[10px] text-[#86868B] hover:text-[#1D1D1F]"
+                onClick={() => {
+                  setSearchQuery("");
+                  searchInputRef.current?.focus();
+                }}
+                className="absolute right-2 text-[10px] text-[#86868B] hover:text-[#1D1D1F] p-0.5 rounded cursor-pointer"
+                title="Clear filter (Esc)"
               >
                 ✕
               </button>
             ) : (
-              <span className="absolute right-2 text-[10px] font-medium bg-[#F2F2F7] px-1 py-0.5 rounded text-[#86868B]">
+              <kbd
+                onClick={() => searchInputRef.current?.focus()}
+                className="absolute right-2 text-[10px] font-medium bg-[#F2F2F7] border border-[#E5E5EA] px-1 py-0.5 rounded text-[#86868B] cursor-pointer hover:bg-[#E5E5EA]"
+                title="Press ⌘K or Ctrl+K to search"
+              >
                 ⌘K
-              </span>
+              </kbd>
             )}
           </div>
         </div>
@@ -487,85 +540,108 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
 
       {/* Navigation Sections */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
-        {/* Core Operations / Scheduler Modules */}
-        <div className="space-y-1">
-          {!collapsed && (
-            <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
-              Scheduling & Production
+        {/* Empty state when search yields no matches */}
+        {trimmedQuery && filteredPrimary.length === 0 && filteredDropdowns.length === 0 && (
+          <div className="px-3 py-8 text-center select-none">
+            <Search className="w-6 h-6 text-[#86868B] mx-auto mb-2 opacity-40" />
+            <div className="text-xs font-semibold text-[#1D1D1F]">No modules found</div>
+            <div className="text-[11px] text-[#86868B] mt-0.5">
+              No results for &ldquo;{searchQuery}&rdquo;
             </div>
-          )}
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                searchInputRef.current?.focus();
+              }}
+              className="mt-3 px-3 py-1 text-[11px] font-medium text-[#007AFF] bg-[#007AFF]/10 hover:bg-[#007AFF]/20 rounded-lg transition-colors cursor-pointer"
+            >
+              Clear filter
+            </button>
+          </div>
+        )}
 
-          {filteredPrimary.map((module) => {
-            const Icon = module.icon;
-            const isCurrent = activeModule === module.id;
+        {/* Core Operations / Scheduler Modules */}
+        {filteredPrimary.length > 0 && (
+          <div className="space-y-1">
+            {!collapsed && (
+              <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
+                Scheduling & Production
+              </div>
+            )}
 
-            return (
-              <button
-                key={module.id}
-                onClick={() => {
-                  setActiveModule(module.id);
-                  setOpenSubmenu(null); // Auto-close open dropdowns when clicking a primary module
-                  if (module.href && module.href !== "#") {
-                    router.push(module.href);
-                  }
-                }}
-                title={collapsed ? module.label : undefined}
-                className={cn(
-                  "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all group text-left",
-                  isCurrent
-                    ? "bg-[#007AFF] text-white shadow-sm font-semibold"
-                    : "text-[#1D1D1F] hover:bg-[#EBEBF0]/70"
-                )}
-              >
-                <Icon
+            {filteredPrimary.map((module) => {
+              const Icon = module.icon;
+              const isCurrent = activeModule === module.id;
+
+              return (
+                <button
+                  key={module.id}
+                  onClick={() => {
+                    setActiveModule(module.id);
+                    setOpenSubmenu(null); // Auto-close open dropdowns when clicking a primary module
+                    if (module.href && module.href !== "#") {
+                      router.push(module.href);
+                    }
+                  }}
+                  title={collapsed ? module.label : undefined}
                   className={cn(
-                    "w-4 h-4 shrink-0 transition-colors",
+                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all group text-left",
                     isCurrent
-                      ? "text-white"
-                      : module.iconColor || "text-[#6E6E73] group-hover:text-[#1D1D1F]"
+                      ? "bg-[#007AFF] text-white shadow-sm font-semibold"
+                      : "text-[#1D1D1F] hover:bg-[#EBEBF0]/70"
                   )}
-                />
-
-                {!collapsed && (
-                  <span className="truncate flex-1">{module.label}</span>
-                )}
-
-                {!collapsed && (
-                  <>
-                    {module.badge && !isCurrent && (
-                      <span
-                        className={cn(
-                          "text-[10px] font-medium px-1.5 py-0.2 rounded-full",
-                          module.badgeColor
-                        )}
-                      >
-                        {module.badge}
-                      </span>
+                >
+                  <Icon
+                    className={cn(
+                      "w-4 h-4 shrink-0 transition-colors",
+                      isCurrent
+                        ? "text-white"
+                        : module.iconColor || "text-[#6E6E73] group-hover:text-[#1D1D1F]"
                     )}
-                    {isCurrent && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
-                    )}
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                  />
+
+                  {!collapsed && (
+                    <span className="truncate flex-1">{module.label}</span>
+                  )}
+
+                  {!collapsed && (
+                    <>
+                      {module.badge && !isCurrent && (
+                        <span
+                          className={cn(
+                            "text-[10px] font-medium px-1.5 py-0.2 rounded-full",
+                            module.badgeColor
+                          )}
+                        >
+                          {module.badge}
+                        </span>
+                      )}
+                      {isCurrent && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                      )}
+                    </>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* System Masters & Data Dropdowns */}
-        <div className="space-y-1">
-          {!collapsed && (
-            <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
-              System Masters & Data
-            </div>
-          )}
+        {filteredDropdowns.length > 0 && (
+          <div className="space-y-1">
+            {!collapsed && (
+              <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
+                System Masters & Data
+              </div>
+            )}
 
-          {filteredDropdowns.map((dropdown) => {
-            const Icon = dropdown.icon;
-            const isOpen = openSubmenu === dropdown.id || searchQuery.length > 0;
-            const isAnySubActive = dropdown.items.some(
-              (item) => activeModule === item.id
-            );
+            {filteredDropdowns.map((dropdown) => {
+              const Icon = dropdown.icon;
+              const isOpen = openSubmenu === dropdown.id || trimmedQuery.length > 0;
+              const isAnySubActive = dropdown.items.some(
+                (item) => activeModule === item.id
+              );
 
             return (
               <div key={dropdown.id} className="space-y-0.5">
@@ -703,7 +779,8 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* User Footer Profile: Super Administrator */}

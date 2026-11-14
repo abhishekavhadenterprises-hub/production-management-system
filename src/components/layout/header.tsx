@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import {
   AlertTriangle,
   Bell,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { ReportingPeriod } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { PremiumDropdown } from "@/components/ui/premium-dropdown";
 
 interface HeaderProps {
   period: ReportingPeriod;
@@ -29,8 +31,8 @@ const PERIOD_LABELS: Record<ReportingPeriod, string> = {
 };
 
 export function Header({ period, onPeriodChange, onToggleSidebar }: HeaderProps) {
+  const router = useRouter();
   const [dashboardDropdownOpen, setDashboardDropdownOpen] = useState(false);
-  const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   return (
@@ -71,47 +73,21 @@ export function Header({ period, onPeriodChange, onToggleSidebar }: HeaderProps)
         {/* Right Actions: Period dropdown, alerts, profile */}
         <div className="flex items-center gap-3 text-[#1D1D1F]">
           {/* Quick Period Selector in Header */}
-          <div className="relative">
-            <button
-              onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-[#1D1D1F] bg-white border border-[#E5E5EA] rounded-lg shadow-sm hover:border-[#D1D1D6] transition-colors"
-            >
-              <Calendar className="w-3 h-3 text-[#007AFF]" />
-              <span>{PERIOD_LABELS[period]}</span>
-              <ChevronDown className="w-3 h-3 text-[#86868B]" />
-            </button>
-
-            {periodDropdownOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setPeriodDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-1.5 w-44 bg-white border border-[#E5E5EA] rounded-xl shadow-apple-dropdown py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-1 text-[10px] font-semibold text-[#86868B] uppercase tracking-wider">
-                    Reporting Window
-                  </div>
-                  {(["today", "7d", "30d", "quarter", "ytd"] as ReportingPeriod[]).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => {
-                        onPeriodChange(p);
-                        setPeriodDropdownOpen(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-[#F5F5F7] transition-colors",
-                        period === p
-                          ? "text-[#007AFF] font-semibold bg-[#E8F2FE]/50"
-                          : "text-[#1D1D1F]"
-                      )}
-                    >
-                      <span>{PERIOD_LABELS[p]}</span>
-                      {period === p && <Check className="w-3.5 h-3.5 text-[#007AFF]" />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="w-[145px]">
+            <PremiumDropdown
+              value={period}
+              onChange={(val) => onPeriodChange(val as ReportingPeriod)}
+              options={(["today", "7d", "30d", "quarter", "ytd"] as ReportingPeriod[]).map((p) => ({
+                value: p,
+                label: PERIOD_LABELS[p],
+              }))}
+              icon={<Calendar className="w-3.5 h-3.5 text-[#007AFF]" />}
+              size="sm"
+              align="right"
+              searchable={false}
+              menuClassName="w-44"
+              buttonClassName="rounded-lg shadow-sm"
+            />
           </div>
 
           {/* Diagnostics / Alert Indicator */}
@@ -210,38 +186,47 @@ export function Header({ period, onPeriodChange, onToggleSidebar }: HeaderProps)
                   Operational Modules
                 </div>
                 <button
-                  onClick={() => setDashboardDropdownOpen(false)}
-                  className="w-full text-left px-3 py-2 text-xs font-semibold text-[#007AFF] bg-[#E8F2FE] rounded-lg flex items-center justify-between"
+                  onClick={() => {
+                    setDashboardDropdownOpen(false);
+                    router.push("/bop-transfer");
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs font-semibold text-[#16A34A] bg-[#EAF8EF] rounded-lg flex items-center justify-between"
                 >
-                  <span>Machine Scheduler</span>
+                  <span>BOP Transfer (Store &rarr; Zones)</span>
                   <Check className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => setDashboardDropdownOpen(false)}
+                  onClick={() => {
+                    setDashboardDropdownOpen(false);
+                    router.push("/work-orders");
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
+                >
+                  Work Orders Management (SoftGen)
+                </button>
+                <button
+                  onClick={() => {
+                    setDashboardDropdownOpen(false);
+                    router.push("/machine-scheduler");
+                  }}
+                  className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
+                >
+                  Machine Scheduler
+                </button>
+                <button
+                  onClick={() => {
+                    setDashboardDropdownOpen(false);
+                    router.push("/production");
+                  }}
                   className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                 >
                   Production Monitoring
                 </button>
                 <button
-                  onClick={() => setDashboardDropdownOpen(false)}
-                  className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
-                >
-                  IKP Transfer
-                </button>
-                <button
-                  onClick={() => setDashboardDropdownOpen(false)}
-                  className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
-                >
-                  Work Order Assignment
-                </button>
-                <button
-                  onClick={() => setDashboardDropdownOpen(false)}
-                  className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
-                >
-                  Brazing Operations
-                </button>
-                <button
-                  onClick={() => setDashboardDropdownOpen(false)}
+                  onClick={() => {
+                    setDashboardDropdownOpen(false);
+                    router.push("/");
+                  }}
                   className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                 >
                   Dashboard Zone

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Machine,
   WorkOrder,
@@ -27,6 +27,7 @@ import { BookingModal } from "./booking-modal";
 import { BookingDetailDrawer } from "./booking-detail-drawer";
 import { ImportWorkOrdersModal } from "./import-work-orders-modal";
 import { MobileSchedulerList } from "./mobile-scheduler-list";
+import { ProdsyncTopNav } from "@/components/layout/prodsync-top-nav";
 
 export function MachineSchedulerView() {
   // Main Workspace State
@@ -42,6 +43,18 @@ export function MachineSchedulerView() {
   const [machines, setMachines] = useState<Machine[]>(INITIAL_MACHINES);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(INITIAL_WORK_ORDERS);
   const [bookings, setBookings] = useState<JobBooking[]>(INITIAL_BOOKINGS);
+
+  // Sync scheduled and running jobs with Production view
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("prodsync_active_bookings", JSON.stringify(bookings));
+        window.dispatchEvent(new Event("prodsync_bookings_updated"));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [bookings]);
 
   // Modal & Drawer State
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -65,16 +78,86 @@ export function MachineSchedulerView() {
       ? [...TIME_SLOTS_SHIFT_A, ...TIME_SLOTS_SHIFT_B]
       : TIME_SLOTS_SHIFT_A;
 
-  // Status counts calculated dynamically
+  // Dynamic machines with effective status based on bookings for the current shift and date
+  const effectiveMachines: Machine[] = useMemo(() => {
+    return machines.map((m) => {
+      // If machine is in a hardware failure/maintenance state, keep it
+      if (
+        m.status === "breakdown" ||
+        m.status === "quality_issue" ||
+        m.status === "offline" ||
+        m.status === "maintenance"
+      ) {
+        return m;
+      }
+
+      // Check if machine has an active job booked or running in this date and shift
+      const hasBooking = bookings.some((b) => {
+        if (b.machineId !== m.id && b.machineCode !== m.code) return false;
+        if (b.date !== selectedDate) return false;
+        if (b.status === "cancelled" || b.status === "completed") return false;
+        if (selectedShift === "all-shifts") return true;
+        const shiftMatch =
+          (selectedShift === "shift-a" && b.shift === "Shift A") ||
+          (selectedShift === "shift-b" && b.shift === "Shift B");
+        return shiftMatch;
+      });
+
+      return {
+        ...m,
+        status: hasBooking ? ("running" as MachineStatus) : ("available" as MachineStatus),
+      };
+    });
+  }, [machines, bookings, selectedDate, selectedShift]);
+
+  // Status counts calculated dynamically from effective status
   const statusCounts = {
-    all: machines.length,
-    running: machines.filter((m) => m.status === "running").length,
-    available: machines.filter((m) => m.status === "available").length,
-    breakdown: machines.filter((m) => m.status === "breakdown").length,
-    quality_issue: machines.filter((m) => m.status === "quality_issue").length,
-    offline: machines.filter((m) => m.status === "offline").length,
-    maintenance: machines.filter((m) => m.status === "maintenance").length,
+    all: effectiveMachines.length,
+    running: effectiveMachines.filter((m) => m.status === "running").length,
+    available: effectiveMachines.filter((m) => m.status === "available").length,
+    breakdown: effectiveMachines.filter((m) => m.status === "breakdown").length,
+    quality_issue: effectiveMachines.filter((m) => m.status === "quality_issue").length,
+    offline: effectiveMachines.filter((m) => m.status === "offline").length,
+    maintenance: effectiveMachines.filter((m) => m.status === "maintenance").length,
   };
+
+  // Filtered machines for mobile view
+  const mobileFilteredMachines = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return effectiveMachines.filter((m) => {
+      const matchStatus =
+        activeStatusFilter === "all" ||
+        (activeStatusFilter === "running" && m.status === "running") ||
+        (activeStatusFilter === "available" && m.status === "available") ||
+        (activeStatusFilter === "breakdown" && m.status === "breakdown") ||
+        (activeStatusFilter === "quality_issue" && m.status === "quality_issue") ||
+        (activeStatusFilter === "offline" && m.status === "offline") ||
+        (activeStatusFilter === "maintenance" && m.status === "maintenance");
+
+      const matchDept =
+        selectedDept === "All Departments" || m.department === selectedDept;
+
+      if (!q) return matchStatus && matchDept;
+
+      const machineBookings = bookings.filter((b) => b.machineId === m.id || b.machineCode === m.code);
+      const hasMatchingBooking = machineBookings.some((b) =>
+        b.woNumber.toLowerCase().includes(q) ||
+        b.componentCode.toLowerCase().includes(q) ||
+        b.componentName.toLowerCase().includes(q) ||
+        (b.customer && b.customer.toLowerCase().includes(q)) ||
+        (b.operatorName && b.operatorName.toLowerCase().includes(q))
+      );
+
+      return (
+        matchStatus &&
+        matchDept &&
+        (m.code.toLowerCase().includes(q) ||
+          m.name.toLowerCase().includes(q) ||
+          m.department.toLowerCase().includes(q) ||
+          hasMatchingBooking)
+      );
+    });
+  }, [effectiveMachines, activeStatusFilter, selectedDept, searchQuery, bookings]);
 
   // Reset Filters Handler
   const handleResetFilters = () => {
@@ -115,15 +198,15 @@ export function MachineSchedulerView() {
     setPrefillComponent(comp);
     // Find matching available machine for this component's operation
     const suitableMachine =
-      machines.find(
+      effectiveMachines.find(
         (m) =>
           m.status === "available" &&
           m.compatibleOperations.some((op) =>
             comp.operation.toLowerCase().includes(op.toLowerCase())
           )
       ) ||
-      machines.find((m) => m.status === "available") ||
-      machines[0];
+      effectiveMachines.find((m) => m.status === "available") ||
+      effectiveMachines[0];
 
     setPrefillMachine(suitableMachine);
     setPrefillStartTime("08:30");
@@ -277,6 +360,116 @@ export function MachineSchedulerView() {
     setWorkOrders((prev) => [newChildWo, ...prev]);
   };
 
+  // Split work order directly from queue (e.g. due to material shortage or customer smaller quantity)
+  const handleSplitWorkOrder = (
+    woId: string,
+    compId: string,
+    splitAvailableQty: number,
+    reason: string
+  ) => {
+    setWorkOrders((prev) => {
+      const targetWo = prev.find((w) => w.id === woId);
+      if (!targetWo) return prev;
+
+      const targetComp =
+        targetWo.components.find((c) => c.id === compId) ||
+        targetWo.components[0];
+      const childQty = targetWo.orderedQty - splitAvailableQty;
+
+      // Update parent WO to the available/smaller quantity
+      const updatedParent: WorkOrder = {
+        ...targetWo,
+        orderedQty: splitAvailableQty,
+        unscheduledQty: Math.min(targetWo.unscheduledQty, splitAvailableQty),
+        splitChildren: [...(targetWo.splitChildren || []), `${targetWo.woNumber}-B`],
+        components: targetWo.components.map((comp) => {
+          if (comp.id === targetComp.id) {
+            return {
+              ...comp,
+              requiredQty: splitAvailableQty,
+              remainingQty: Math.min(comp.remainingQty, splitAvailableQty),
+              readyForScheduling: true,
+              stock: {
+                ...comp.stock,
+                required: splitAvailableQty,
+                shortage: 0,
+              },
+            };
+          }
+          return comp;
+        }),
+      };
+
+      // Create child split order for the remainder pending material/customer
+      const childWo: WorkOrder = {
+        id: `wo-${Date.now()}`,
+        woNumber: `${targetWo.woNumber}-B`,
+        date: new Date().toLocaleDateString(),
+        customer: targetWo.customer,
+        assembly: `${targetWo.assembly} (Split Remainder)`,
+        assemblyCode: targetWo.assemblyCode,
+        priority: targetWo.priority,
+        dueDate: targetWo.dueDate,
+        orderedQty: childQty,
+        unscheduledQty: childQty,
+        producedQty: 0,
+        status: "split",
+        splitCancelReason: reason,
+        splitParentWo: targetWo.woNumber,
+        isSampleData: true,
+        components: targetWo.components.map((comp) => ({
+          ...comp,
+          id: `c-split-${Date.now()}-${comp.id}`,
+          requiredQty: childQty,
+          scheduledBalance: 0,
+          goodOutput: 0,
+          rejects: 0,
+          remainingQty: childQty,
+          readyForScheduling: false,
+          stock: {
+            ...comp.stock,
+            required: childQty,
+            available: 0,
+            reserved: 0,
+            shortage: childQty,
+          },
+        })),
+      };
+
+      return [updatedParent, childWo, ...prev.filter((w) => w.id !== woId)];
+    });
+  };
+
+  // Drag and drop reschedule existing booking
+  const handleRescheduleBooking = (
+    bookingId: string,
+    newMachineId: string,
+    newMachineCode: string,
+    newStartTime: string
+  ) => {
+    setBookings((prev) =>
+      prev.map((b) => {
+        if (b.id === bookingId) {
+          const [sh, sm] = newStartTime.split(":").map(Number);
+          const durationMin = b.plannedDurationMinutes || 120;
+          const endTotalMin = sh * 60 + sm + durationMin;
+          const eh = Math.floor(endTotalMin / 60) % 24;
+          const em = endTotalMin % 60;
+          const newEndTime = `${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`;
+
+          return {
+            ...b,
+            machineId: newMachineId,
+            machineCode: newMachineCode,
+            startTime: newStartTime,
+            endTime: newEndTime,
+          };
+        }
+        return b;
+      })
+    );
+  };
+
   // Cancel booking
   const handleCancelBooking = (booking: JobBooking, reason: string) => {
     setBookings((prev) =>
@@ -307,7 +500,10 @@ export function MachineSchedulerView() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)] bg-[#F5F5F7] overflow-hidden select-none">
+    <div className="flex flex-col h-screen bg-[#F5F5F7] overflow-hidden select-none">
+      {/* Top PRODSYNC Header Navigation Bar */}
+      <ProdsyncTopNav />
+
       {/* Top Toolbar */}
       <SchedulerToolbar
         selectedDate={selectedDate}
@@ -336,6 +532,7 @@ export function MachineSchedulerView() {
           isCollapsed={isQueueCollapsed}
           onToggleCollapse={() => setIsQueueCollapsed(!isQueueCollapsed)}
           onSelectComponentToSchedule={handleSelectComponentToSchedule}
+          onSplitWorkOrder={handleSplitWorkOrder}
         />
 
         {/* Center / Right Schedule View (Desktop: Grid or Timeline; Mobile: Responsive list) */}
@@ -343,7 +540,7 @@ export function MachineSchedulerView() {
           {/* Mobile View */}
           <div className="lg:hidden flex-1 overflow-y-auto">
             <MobileSchedulerList
-              machines={machines}
+              machines={mobileFilteredMachines}
               bookings={bookings}
               onBookingClick={(b) => setSelectedBookingForDrawer(b)}
               onMachineSchedule={(m) => {
@@ -358,7 +555,7 @@ export function MachineSchedulerView() {
           <div className="hidden lg:flex flex-1 overflow-hidden">
             {viewMode === "tabular" ? (
               <MachineScheduleGrid
-                machines={machines}
+                machines={effectiveMachines}
                 timeSlots={activeTimeSlots}
                 bookings={bookings}
                 activeStatusFilter={activeStatusFilter}
@@ -367,10 +564,11 @@ export function MachineSchedulerView() {
                 onSlotClick={handleSlotClick}
                 onBookingClick={(b) => setSelectedBookingForDrawer(b)}
                 onDropComponentOnSlot={handleDropComponentOnSlot}
+                onRescheduleBooking={handleRescheduleBooking}
               />
             ) : (
               <MachineTimelineView
-                machines={machines}
+                machines={effectiveMachines}
                 bookings={bookings}
                 activeStatusFilter={activeStatusFilter}
                 searchQuery={searchQuery}
@@ -379,6 +577,7 @@ export function MachineSchedulerView() {
                 onBookingClick={(b) => setSelectedBookingForDrawer(b)}
                 onSlotClick={handleTimelineSlotClick}
                 onDropComponentOnTimeline={handleDropComponentOnTimeline}
+                onRescheduleBooking={handleRescheduleBooking}
               />
             )}
           </div>
@@ -395,7 +594,7 @@ export function MachineSchedulerView() {
         prefillMachine={prefillMachine}
         prefillStartTime={prefillStartTime}
         prefillDate={selectedDate}
-        machines={machines}
+        machines={effectiveMachines}
         tools={TOOLS_MASTER}
         employees={EMPLOYEES_MASTER}
         existingBookings={bookings}

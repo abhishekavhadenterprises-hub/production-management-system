@@ -28,6 +28,7 @@ interface MachineTimelineViewProps {
   onBookingClick: (booking: JobBooking) => void;
   onSlotClick: (machine: Machine, timeStr: string) => void;
   onDropComponentOnTimeline?: (machine: Machine, timeStr: string, woId: string, compId: string) => void;
+  onRescheduleBooking?: (bookingId: string, machineId: string, machineCode: string, newStartTime: string) => void;
 }
 
 export function MachineTimelineView({
@@ -40,6 +41,7 @@ export function MachineTimelineView({
   onBookingClick,
   onSlotClick,
   onDropComponentOnTimeline,
+  onRescheduleBooking,
 }: MachineTimelineViewProps) {
   const [zoomLevel, setZoomLevel] = useState<"1h" | "30m" | "15m">("1h");
 
@@ -57,12 +59,25 @@ export function MachineTimelineView({
     const matchDept =
       selectedDept === "All Departments" || m.department === selectedDept;
 
-    const q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return matchStatus && matchDept;
+
+    const machineBookings = bookings.filter((b) => b.machineId === m.id || b.machineCode === m.code);
+    const hasMatchingBooking = machineBookings.some((b) =>
+      b.woNumber.toLowerCase().includes(q) ||
+      b.componentCode.toLowerCase().includes(q) ||
+      b.componentName.toLowerCase().includes(q) ||
+      (b.customer && b.customer.toLowerCase().includes(q)) ||
+      (b.operatorName && b.operatorName.toLowerCase().includes(q)) ||
+      (b.operation && b.operation.toLowerCase().includes(q))
+    );
+
     const matchSearch =
-      !q ||
       m.code.toLowerCase().includes(q) ||
       m.name.toLowerCase().includes(q) ||
-      m.department.toLowerCase().includes(q);
+      m.department.toLowerCase().includes(q) ||
+      m.status.toLowerCase().includes(q) ||
+      hasMatchingBooking;
 
     return matchStatus && matchDept && matchSearch;
   });
@@ -242,9 +257,8 @@ export function MachineTimelineView({
                       if (isBlocked) return;
                       e.preventDefault();
                       const data = e.dataTransfer.getData("application/json");
-                      if (data && onDropComponentOnTimeline) {
+                      if (data) {
                         try {
-                          const { woId, compId } = JSON.parse(data);
                           const rect = e.currentTarget.getBoundingClientRect();
                           const clickX = e.clientX - rect.left;
                           const hourOffset = clickX / pxPerHour;
@@ -254,7 +268,13 @@ export function MachineTimelineView({
                           const m = Math.floor((totalHour % 1) * 60);
                           const roundedM = Math.round(m / 15) * 15;
                           const timeStr = `${String(h).padStart(2, "0")}:${String(roundedM % 60).padStart(2, "0")}`;
-                          onDropComponentOnTimeline(machine, timeStr, woId, compId);
+                          const parsed = JSON.parse(data);
+
+                          if (parsed.isExistingBooking && onRescheduleBooking) {
+                            onRescheduleBooking(parsed.bookingId, machine.id, machine.code, timeStr);
+                          } else if (onDropComponentOnTimeline) {
+                            onDropComponentOnTimeline(machine, timeStr, parsed.woId, parsed.compId);
+                          }
                         } catch (err) {
                           console.error(err);
                         }
@@ -307,28 +327,51 @@ export function MachineTimelineView({
                           return (
                             <div
                               key={b.id}
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData(
+                                  "application/json",
+                                  JSON.stringify({
+                                    isExistingBooking: true,
+                                    bookingId: b.id,
+                                    woId: b.woId,
+                                    compId: b.componentCode,
+                                  })
+                                );
+                                e.dataTransfer.effectAllowed = "move";
+                              }}
                               onClick={() => onBookingClick(b)}
                               style={{
                                 left: leftPos,
                                 width: Math.max(90, barWidth),
                               }}
                               className={cn(
-                                "absolute top-1.5 bottom-1.5 rounded-xl p-2 flex flex-col justify-between cursor-pointer transition-all shadow-xs text-white z-10 hover:brightness-105 hover:ring-2 hover:ring-white",
+                                "absolute top-1.5 bottom-1.5 rounded-xl p-2 flex flex-col justify-between cursor-grab active:cursor-grabbing transition-all shadow-xs text-white z-10 hover:brightness-105 hover:ring-2 hover:ring-white",
                                 b.status === "running"
                                   ? "bg-[#34C759]"
                                   : b.status === "paused"
                                   ? "bg-[#FF9500]"
                                   : "bg-[#007AFF]"
                               )}
-                              title={`${b.woNumber}: ${b.componentName} (${b.quantity} pcs) - ${b.startTime} to ${b.endTime}`}
+                              title={`${b.woNumber}: ${b.componentName} (${b.quantity} pcs) - Drag to reschedule or click for details`}
                             >
                               <div className="flex items-center justify-between gap-1 leading-tight">
                                 <span className="font-bold text-[10.5px] truncate">
                                   {b.woNumber}
                                 </span>
-                                <span className="text-[9px] font-mono bg-black/20 px-1 py-0.2 rounded shrink-0">
-                                  {b.quantity} pcs
-                                </span>
+                                <div className="flex items-center gap-1">
+                                  {b.startDelayReason && (
+                                    <span
+                                      className="text-[8px] font-bold px-1 py-0.2 bg-[#FF9500] text-white rounded flex items-center gap-0.5"
+                                      title={`Delayed start: ${b.startDelayReason}`}
+                                    >
+                                      +{b.startDelayMinutes || 0}m
+                                    </span>
+                                  )}
+                                  <span className="text-[9px] font-mono bg-black/20 px-1 py-0.2 rounded shrink-0">
+                                    {b.quantity} pcs
+                                  </span>
+                                </div>
                               </div>
 
                               <div className="text-[9.5px] truncate opacity-90 font-mono">

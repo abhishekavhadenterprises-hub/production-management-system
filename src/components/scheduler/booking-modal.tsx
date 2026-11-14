@@ -29,6 +29,9 @@ import {
   EmployeeMasterItem,
 } from "@/lib/scheduler-types";
 import { cn } from "@/lib/utils";
+import { PremiumDropdown } from "@/components/ui/premium-dropdown";
+import { PremiumNumberInput } from "@/components/ui/premium-number-input";
+import { PremiumSwitch } from "@/components/ui/premium-switch";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -502,17 +505,16 @@ export function BookingModal({
                 <Cpu className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Target Machine</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={selectedMachineId}
-                onChange={(e) => setSelectedMachineId(e.target.value)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-semibold text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                {machines.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.code} - {m.name} ({m.runningRatePerHour} pcs/hr)
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedMachineId}
+                options={machines.map((m) => ({
+                  value: m.id,
+                  label: `${m.code} - ${m.name}`,
+                  sublabel: `${m.department} • ${m.runningRatePerHour} pcs/hr`,
+                }))}
+                size="md"
+              />
             </div>
 
             {/* Assembly Part * */}
@@ -521,17 +523,16 @@ export function BookingModal({
                 <Wrench className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Assembly Part *</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={selectedComponentId}
-                onChange={(e) => setSelectedComponentId(e.target.value)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-semibold text-[#007AFF] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                {prefillWo?.components.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.code} - {c.name} ({c.remainingQty} {c.unit} remaining)
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedComponentId}
+                options={(prefillWo?.components || []).map((c) => ({
+                  value: c.id,
+                  label: `${c.code} - ${c.name}`,
+                  sublabel: `${c.remainingQty} ${c.unit} remaining`,
+                }))}
+                size="md"
+              />
             </div>
 
             {/* Last Maintenance Date */}
@@ -568,14 +569,16 @@ export function BookingModal({
                 <Clock className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Shift *</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={shift}
-                onChange={(e) => setShift(e.target.value as any)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-semibold text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                <option value="Shift A">Shift A (08:30 - 20:30)</option>
-                <option value="Shift B">Shift B (20:30 - 08:30 next day)</option>
-              </select>
+                onChange={(val) => setShift(val as any)}
+                options={[
+                  { value: "Shift A", label: "Shift A (08:30 - 20:30)" },
+                  { value: "Shift B", label: "Shift B (20:30 - 08:30 next day)" },
+                ]}
+                size="md"
+                searchable={false}
+              />
             </div>
 
             {/* Tool Changed Required */}
@@ -584,14 +587,13 @@ export function BookingModal({
                 <Wrench className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Tool Changed Required</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={toolChangeRequired}
-                onChange={(e) => setToolChangeRequired(e.target.value as any)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-medium text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
+                onChange={(val) => setToolChangeRequired(val as any)}
+                options={["Yes", "No"]}
+                size="md"
+                searchable={false}
+              />
             </div>
 
             {/* Tool Information */}
@@ -600,15 +602,17 @@ export function BookingModal({
                 <Info className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Tool Information</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={toolInfoMode}
-                onChange={(e) => setToolInfoMode(e.target.value)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-medium text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                <option value="Select From Library">Select From Library</option>
-                <option value="Custom Tooling Set">Custom Tooling Set</option>
-                <option value="Direct Tool Mounting">Direct Tool Mounting</option>
-              </select>
+                onChange={setToolInfoMode}
+                options={[
+                  "Select From Library",
+                  "Custom Tooling Set",
+                  "Direct Tool Mounting",
+                ]}
+                size="md"
+                searchable={false}
+              />
             </div>
 
             {/* Tool Library */}
@@ -617,17 +621,16 @@ export function BookingModal({
                 <Wrench className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Tool Library</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={selectedToolId}
-                onChange={(e) => setSelectedToolId(e.target.value)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-medium text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                {tools.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.code} - {t.name} ({t.status})
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedToolId}
+                options={tools.map((t) => ({
+                  value: t.id,
+                  label: `${t.code} - ${t.name}`,
+                  sublabel: `Status: ${t.status}`,
+                }))}
+                size="md"
+              />
             </div>
 
             {/* Planned Start * */}
@@ -670,17 +673,16 @@ export function BookingModal({
                 <User className="w-3.5 h-3.5 text-[#007AFF]" />
                 <span>Assigned Operator</span>
               </label>
-              <select
+              <PremiumDropdown
                 value={selectedOperatorId}
-                onChange={(e) => handleOperatorChange(e.target.value)}
-                className="w-full p-2 bg-white border border-[#E5E5EA] rounded-xl text-xs font-semibold text-[#1D1D1F] outline-none focus:border-[#007AFF] shadow-2xs cursor-pointer"
-              >
-                {employees.map((e) => (
-                  <option key={e.id} value={e.id}>
-                    {e.name} ({e.empId}) • {e.attendance}
-                  </option>
-                ))}
-              </select>
+                onChange={handleOperatorChange}
+                options={employees.map((e) => ({
+                  value: e.id,
+                  label: `${e.name} (${e.empId})`,
+                  sublabel: `${e.role} • ${e.shift} • Attendance: ${e.attendance}`,
+                }))}
+                size="md"
+              />
             </div>
 
             {/* Operator Name & EMP ID inputs */}
@@ -725,81 +727,81 @@ export function BookingModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Tool Setup */}
-              <div className="p-2 rounded-lg bg-white border border-[#E5E5EA] space-y-1 shadow-2xs">
+              <div className="p-3 rounded-xl bg-white border border-[#E5E5EA] space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[11px] text-[#1D1D1F]">Tool Setup</span>
-                  <label className="flex items-center gap-1 text-[10px] text-[#007AFF] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={toolSetupApplied}
-                      onChange={(e) => setToolSetupApplied(e.target.checked)}
-                      className="rounded text-[#007AFF]"
-                    />
-                    <span>{toolSetupApplied ? "Apply" : "Skip"}</span>
-                  </label>
-                </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    disabled={!toolSetupApplied}
-                    value={toolSetupMin}
-                    onChange={(e) => setToolSetupMin(Number(e.target.value))}
-                    className="w-16 p-1 text-center font-mono text-xs border rounded bg-[#F5F5F7] disabled:opacity-50"
+                  <PremiumSwitch
+                    checked={toolSetupApplied}
+                    onChange={setToolSetupApplied}
+                    size="sm"
+                    label={
+                      <span className="text-[10px] text-[#007AFF] font-medium">
+                        {toolSetupApplied ? "Apply" : "Skip"}
+                      </span>
+                    }
                   />
-                  <span className="text-[10px] text-[#86868B]">mins</span>
                 </div>
+                <PremiumNumberInput
+                  value={toolSetupMin}
+                  onChange={setToolSetupMin}
+                  disabled={!toolSetupApplied}
+                  min={0}
+                  suffix="mins"
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               {/* Program Setup */}
-              <div className="p-2 rounded-lg bg-white border border-[#E5E5EA] space-y-1 shadow-2xs">
+              <div className="p-3 rounded-xl bg-white border border-[#E5E5EA] space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[11px] text-[#1D1D1F]">Program Setup</span>
-                  <label className="flex items-center gap-1 text-[10px] text-[#007AFF] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={programSetupApplied}
-                      onChange={(e) => setProgramSetupApplied(e.target.checked)}
-                      className="rounded text-[#007AFF]"
-                    />
-                    <span>{programSetupApplied ? "Apply" : "Skip"}</span>
-                  </label>
-                </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    disabled={!programSetupApplied}
-                    value={programSetupMin}
-                    onChange={(e) => setProgramSetupMin(Number(e.target.value))}
-                    className="w-16 p-1 text-center font-mono text-xs border rounded bg-[#F5F5F7] disabled:opacity-50"
+                  <PremiumSwitch
+                    checked={programSetupApplied}
+                    onChange={setProgramSetupApplied}
+                    size="sm"
+                    label={
+                      <span className="text-[10px] text-[#007AFF] font-medium">
+                        {programSetupApplied ? "Apply" : "Skip"}
+                      </span>
+                    }
                   />
-                  <span className="text-[10px] text-[#86868B]">mins</span>
                 </div>
+                <PremiumNumberInput
+                  value={programSetupMin}
+                  onChange={setProgramSetupMin}
+                  disabled={!programSetupApplied}
+                  min={0}
+                  suffix="mins"
+                  size="sm"
+                  className="w-full"
+                />
               </div>
 
               {/* Sample Inspection Setup */}
-              <div className="p-2 rounded-lg bg-white border border-[#E5E5EA] space-y-1 shadow-2xs">
+              <div className="p-3 rounded-xl bg-white border border-[#E5E5EA] space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[11px] text-[#1D1D1F]">Sample Setup</span>
-                  <label className="flex items-center gap-1 text-[10px] text-[#007AFF] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sampleSetupApplied}
-                      onChange={(e) => setSampleSetupApplied(e.target.checked)}
-                      className="rounded text-[#007AFF]"
-                    />
-                    <span>{sampleSetupApplied ? "Apply" : "Skip"}</span>
-                  </label>
-                </div>
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    disabled={!sampleSetupApplied}
-                    value={sampleSetupMin}
-                    onChange={(e) => setSampleSetupMin(Number(e.target.value))}
-                    className="w-16 p-1 text-center font-mono text-xs border rounded bg-[#F5F5F7] disabled:opacity-50"
+                  <PremiumSwitch
+                    checked={sampleSetupApplied}
+                    onChange={setSampleSetupApplied}
+                    size="sm"
+                    label={
+                      <span className="text-[10px] text-[#007AFF] font-medium">
+                        {sampleSetupApplied ? "Apply" : "Skip"}
+                      </span>
+                    }
                   />
-                  <span className="text-[10px] text-[#86868B]">mins</span>
                 </div>
+                <PremiumNumberInput
+                  value={sampleSetupMin}
+                  onChange={setSampleSetupMin}
+                  disabled={!sampleSetupApplied}
+                  min={0}
+                  suffix="mins"
+                  size="sm"
+                  className="w-full"
+                />
               </div>
             </div>
 
