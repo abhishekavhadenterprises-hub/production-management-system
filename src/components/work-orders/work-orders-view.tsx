@@ -30,10 +30,12 @@ import {
   SoftgenWorkOrder,
   INITIAL_SOFTGEN_WORK_ORDERS,
 } from "@/lib/work-orders-mock-data";
+import { usePersistentState } from "@/lib/use-persistent-state";
 
 export function WorkOrdersView() {
-  // State
-  const [workOrders, setWorkOrders] = useState<SoftgenWorkOrder[]>(
+  // State (persisted across reloads and module navigation)
+  const [workOrders, setWorkOrders] = usePersistentState<SoftgenWorkOrder[]>(
+    "prodsync_softgen_work_orders",
     INITIAL_SOFTGEN_WORK_ORDERS
   );
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,13 +139,60 @@ export function WorkOrdersView() {
       ],
     };
 
-    setWorkOrders([newOrder, ...workOrders]);
+    setWorkOrders((prev) => [newOrder, ...prev]);
     setIsCreateModalOpen(false);
     setSelectedWoId(newOrder.id);
+
+    // Cross-sync to machine scheduler queue in localStorage
+    try {
+      if (typeof window !== "undefined") {
+        const storedSched = localStorage.getItem("prodsync_scheduler_work_orders");
+        let schedList: any[] = storedSched ? JSON.parse(storedSched) : [];
+        const newSchedItem = {
+          id: newOrder.id,
+          woNumber: newOrder.woNumber,
+          customer: newOrder.customer,
+          orderedQty: newOrder.ordered,
+          unscheduledQty: newOrder.ordered,
+          priority: newOrder.priority,
+          product: newOrder.product,
+          assembly: newOrder.product,
+          assemblyCode: newOrder.assemblyCode,
+          components: (newOrder.components || []).map((c, idx) => ({
+            id: `${newOrder.id}-c${idx + 1}`,
+            code: c.code,
+            name: c.name,
+            operation: c.operation,
+            remainingQty: c.required,
+            scheduledBalance: 0,
+            unit: "pcs",
+            stock: {
+              required: c.required,
+              available: c.available,
+              shortage: c.shortage,
+            },
+            rawMaterials: [
+              {
+                code: `RM-${c.code}`,
+                description: `${c.name} Stock Blank`,
+                reqQty: c.required,
+                availStock: c.available,
+                shortage: c.shortage,
+                status: c.shortage > 0 ? "SHORTAGE" : "OK",
+              },
+            ],
+          })),
+        };
+        schedList = [newSchedItem, ...schedList];
+        localStorage.setItem("prodsync_scheduler_work_orders", JSON.stringify(schedList));
+      }
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
-    <div className="apple-work-orders-page min-h-screen bg-[#F5F5F7] text-[#1D1D1F] pb-12 select-none">
+    <div className="apple-work-orders-page min-h-screen bg-[#F5F5F7] text-[#1D1D1F] pb-12">
       <Head>
         <title>Work Orders Management - PRODSYNC Enterprise</title>
         <meta

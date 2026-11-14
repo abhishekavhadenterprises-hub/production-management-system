@@ -12,6 +12,7 @@ import {
   ArrowRightLeft,
   BarChart3,
   ChevronDown,
+  ChevronLeft,
   Command,
   SlidersHorizontal,
   LogOut,
@@ -96,6 +97,17 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
       setActiveModule("work-orders");
     } else if (currentPath === "/bop-transfer") {
       setActiveModule("bop-transfer");
+    } else if (currentPath === "/brazing") {
+      setActiveModule("brazing");
+    } else if (currentPath === "/work-order-assignment") {
+      setActiveModule("work-order-assignment");
+    } else if (currentPath === "/split-cancel-zone") {
+      setActiveModule("split-cancel-zone");
+    } else if (currentPath.startsWith("/transaction")) {
+      setActiveModule("all-transaction-forms");
+      setOpenSubmenu("transaction");
+    } else if (currentPath.startsWith("/masters")) {
+      setActiveModule("masters");
     }
   }, [currentPath]);
 
@@ -153,111 +165,23 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
       label: "Brazing",
       icon: Flame,
       iconColor: "text-[#FF9500]",
-      href: "#",
+      badge: "4",
+      badgeColor: "bg-[#FEF3C7] text-[#D97706]",
+      href: "/brazing",
+    },
+    {
+      id: "work-order-assignment",
+      label: "Work Order Assignment",
+      icon: Layers,
+      iconColor: "text-[#2563EB]",
+      badge: "11",
+      badgeColor: "bg-[#FEF3C7] text-[#D97706]",
+      href: "/work-order-assignment",
     },
   ];
 
   // Dropdown menu modules with enterprise manufacturing sub-items
   const dropdownModules = [
-    {
-      id: "masters",
-      label: "Masters",
-      icon: Database,
-      items: [
-        // --- CORE CONFIGURATION ---
-        {
-          id: "bom-master-assembly",
-          label: "BOM Master (Assembly)",
-          icon: GitFork,
-          iconColor: "text-[#D97706]",
-          badge: "Child + BOP",
-          badgeColor: "bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]",
-          sectionHeader: "CORE CONFIGURATION",
-          sectionIcon: Settings,
-          sectionColor: "text-[#6E6E73]",
-        },
-        {
-          id: "zone-master",
-          label: "Zone Master",
-          icon: MapPin,
-          iconColor: "text-[#D97706]",
-          badge: "Plant Zones",
-          badgeColor: "bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]",
-        },
-        {
-          id: "virtual-box-master",
-          label: "Virtual Box Master",
-          icon: Boxes,
-          iconColor: "text-[#0284C7]",
-          badge: "VB1 - VB4",
-          badgeColor: "bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]",
-          subRow: {
-            label: "BUFFER BOXES:",
-            items: ["VB1", "VB2", "VB3", "VB4"],
-          },
-        },
-        {
-          id: "assembly-route-card",
-          label: "Assembly Route Card",
-          icon: Route,
-          iconColor: "text-[#2563EB]",
-          badge: "Zone Map",
-          badgeColor: "bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]",
-        },
-        {
-          id: "department-master",
-          label: "Department Master",
-          icon: Building2,
-          iconColor: "text-[#2563EB]",
-        },
-        {
-          id: "section-master",
-          label: "Section Master",
-          icon: LayoutGrid,
-          iconColor: "text-[#0D9488]",
-        },
-        {
-          id: "employee-master",
-          label: "Employee Master",
-          icon: Users,
-          iconColor: "text-[#2563EB]",
-        },
-        {
-          id: "machines",
-          label: "Machines",
-          icon: Cog,
-          iconColor: "text-[#2563EB]",
-        },
-        {
-          id: "tool-master",
-          label: "Tool Master",
-          icon: Wrench,
-          iconColor: "text-[#D97706]",
-        },
-        {
-          id: "inventory-stock",
-          label: "Inventory & Stock",
-          icon: Package,
-          iconColor: "text-[#0D9488]",
-        },
-        // --- REASON CODES ---
-        {
-          id: "delay-reasons",
-          label: "Delay Reasons",
-          icon: Clock,
-          iconColor: "text-[#EA580C]",
-          sectionHeader: "REASON CODES",
-          sectionIcon: SlidersHorizontal,
-          sectionColor: "text-[#6E6E73]",
-        },
-        {
-          id: "cancel-split-reasons",
-          label: "Cancel/Split Reasons",
-          icon: CircleSlash,
-          iconColor: "text-[#6E6E73]",
-        },
-      ],
-    },
     {
       id: "transaction",
       label: "Transaction",
@@ -270,30 +194,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
           iconColor: "text-[#007AFF]",
           badge: "Hub",
           badgeColor: "bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]",
-        },
-        // --- WORK ORDERS ---
-        {
-          id: "work-orders",
-          label: "Work Orders",
-          icon: ListChecks,
-          iconColor: "text-[#2563EB]",
-          sectionHeader: "WORK ORDERS",
-          sectionIcon: FileSpreadsheet,
-          sectionColor: "text-[#6E6E73]",
-        },
-        {
-          id: "create-work-order",
-          label: "Create Work Order",
-          icon: PlusCircle,
-          iconColor: "text-[#16A34A]",
-        },
-        {
-          id: "work-order-assignment-tx",
-          label: "Work Order Assignment",
-          icon: Layers,
-          iconColor: "text-[#2563EB]",
-          badge: "5 Zones",
-          badgeColor: "bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE]",
+          href: "/transactions",
         },
         {
           id: "split-cancel-zone",
@@ -302,6 +203,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
           iconColor: "text-[#DC2626]",
           badge: "11",
           badgeColor: "bg-[#DC2626] text-white font-bold",
+          href: "/split-cancel-zone",
         },
         // --- MACHINE AUDIT EMP RANKING ---
         {
@@ -457,34 +359,46 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
     })
     .filter((dropdown) => dropdown.items.length > 0);
 
+  // Check if Masters module matches search query
+  const isMastersMatch =
+    !trimmedQuery ||
+    "masters".includes(trimmedQuery) ||
+    "master data".includes(trimmedQuery) ||
+    "bom".includes(trimmedQuery) ||
+    "zone".includes(trimmedQuery) ||
+    "virtual box".includes(trimmedQuery) ||
+    "department".includes(trimmedQuery) ||
+    "section".includes(trimmedQuery) ||
+    "employee".includes(trimmedQuery) ||
+    "machines".includes(trimmedQuery) ||
+    "tool".includes(trimmedQuery) ||
+    "inventory".includes(trimmedQuery) ||
+    "stock".includes(trimmedQuery) ||
+    "delay reasons".includes(trimmedQuery) ||
+    "cancel split reasons".includes(trimmedQuery);
+
   return (
     <aside
       className={cn(
-        "apple-sidebar flex flex-col h-screen bg-[#FAFAFC] border-r border-[#E5E5EA] transition-all duration-300 z-30 select-none",
-        collapsed ? "w-20" : "w-64",
+        "apple-sidebar flex flex-col h-full bg-white border-r border-[#EAECF0] transition-all duration-300 z-30 font-sans",
+        collapsed ? "w-20" : "w-72",
         className
       )}
     >
-      {/* Brand Header: PRODSYNC Scheduler v2 */}
-      <div className="apple-sidebar-header flex items-center justify-between px-4 py-4 border-b border-[#EBEBF0]">
-        <div className="flex items-center gap-3 overflow-hidden">
-          {/* PRODSYNC Hexagon/Scheduler Glyph */}
-          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#007AFF] text-white shadow-sm shrink-0 font-bold text-xs tracking-tight">
+      {/* Brand Header / Top Controls matching reference */}
+      <div className="flex items-center justify-between px-4 py-3.5 border-b border-[#EAECF0]">
+        <div className="flex items-center gap-2.5 overflow-hidden">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#0A56D1] text-white shadow-xs shrink-0 font-bold text-xs tracking-tight">
             <Layers className="w-4 h-4 text-white" />
           </div>
           {!collapsed && (
             <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="text-[14px] font-bold text-[#1D1D1F] tracking-tight truncate">
-                  PRODSYNC
-                </span>
-                <span className="text-[11px] font-normal text-[#86868B] italic">
-                  Scheduler v2
-                </span>
-              </div>
-              <span className="text-[10.5px] text-[#86868B] truncate flex items-center gap-1.5 mt-1">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#34C759] live-pulse-dot"></span>
-                Shift Operations Live
+              <span className="text-[14px] font-bold text-[#101828] tracking-tight truncate leading-tight">
+                Operations Menu
+              </span>
+              <span className="text-[11px] text-[#475467] truncate flex items-center gap-1.5 mt-0.5 font-medium">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#12B76A]"></span>
+                Live System
               </span>
             </div>
           )}
@@ -494,25 +408,31 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
           <button
             onClick={onToggleCollapse}
             aria-label="Toggle sidebar"
-            className="text-[#86868B] hover:text-[#1D1D1F] p-1 rounded-lg hover:bg-[#EBEBF0] transition-colors"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="w-6 h-6 rounded-full border border-[#EAECF0] bg-white flex items-center justify-center text-[#475467] hover:text-[#101828] hover:bg-[#F2F4F7] shadow-2xs transition-colors"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <ChevronLeft
+              className={cn(
+                "w-3.5 h-3.5 transition-transform duration-200",
+                collapsed && "rotate-180"
+              )}
+            />
           </button>
         )}
       </div>
 
       {/* Quick Search / Filter Input */}
       {!collapsed && (
-        <div className="px-3 pt-3">
+        <div className="px-3.5 pt-3 pb-1">
           <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-[#86868B] absolute left-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#667085] absolute left-3 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter modules..."
-              className="w-full pl-8 pr-8 py-1.5 text-xs text-[#1D1D1F] bg-white border border-[#E5E5EA] rounded-lg shadow-sm placeholder:text-[#86868B] focus:outline-none focus:border-[#007AFF] transition-colors"
+              className="w-full pl-9 pr-8 py-2 text-xs font-medium text-[#101828] bg-[#F8F9FC] border border-[#EAECF0] rounded-xl placeholder:text-[#667085] focus:outline-none focus:border-[#0A56D1] focus:bg-white transition-colors"
             />
             {searchQuery ? (
               <button
@@ -520,7 +440,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                   setSearchQuery("");
                   searchInputRef.current?.focus();
                 }}
-                className="absolute right-2 text-[10px] text-[#86868B] hover:text-[#1D1D1F] p-0.5 rounded cursor-pointer"
+                className="absolute right-2 text-xs text-[#667085] hover:text-[#101828] p-0.5 rounded cursor-pointer"
                 title="Clear filter (Esc)"
               >
                 ✕
@@ -528,7 +448,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
             ) : (
               <kbd
                 onClick={() => searchInputRef.current?.focus()}
-                className="absolute right-2 text-[10px] font-medium bg-[#F2F2F7] border border-[#E5E5EA] px-1 py-0.5 rounded text-[#86868B] cursor-pointer hover:bg-[#E5E5EA]"
+                className="absolute right-2 text-[10px] font-semibold bg-white border border-[#EAECF0] px-1 py-0.5 rounded text-[#667085] cursor-pointer hover:bg-[#F2F4F7]"
                 title="Press ⌘K or Ctrl+K to search"
               >
                 ⌘K
@@ -564,7 +484,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
         {filteredPrimary.length > 0 && (
           <div className="space-y-1">
             {!collapsed && (
-              <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
+              <div className="px-3.5 mb-2 mt-2 text-xs font-bold text-[#475467] uppercase tracking-wider">
                 Scheduling & Production
               </div>
             )}
@@ -585,23 +505,23 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                   }}
                   title={collapsed ? module.label : undefined}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-medium transition-all group text-left",
+                    "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all group text-left",
                     isCurrent
-                      ? "bg-[#007AFF] text-white shadow-sm font-semibold"
-                      : "text-[#1D1D1F] hover:bg-[#EBEBF0]/70"
+                      ? "bg-[#EFF8FF] text-[#175CD3] font-semibold shadow-xs"
+                      : "text-[#344054] hover:bg-[#F8F9FC] hover:text-[#101828]"
                   )}
                 >
                   <Icon
                     className={cn(
-                      "w-4 h-4 shrink-0 transition-colors",
+                      "w-5 h-5 shrink-0 transition-colors",
                       isCurrent
-                        ? "text-white"
-                        : module.iconColor || "text-[#6E6E73] group-hover:text-[#1D1D1F]"
+                        ? "text-[#175CD3]"
+                        : module.iconColor || "text-[#475467] group-hover:text-[#101828]"
                     )}
                   />
 
                   {!collapsed && (
-                    <span className="truncate flex-1">{module.label}</span>
+                    <span className="truncate flex-1 font-medium">{module.label}</span>
                   )}
 
                   {!collapsed && (
@@ -609,7 +529,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                       {module.badge && !isCurrent && (
                         <span
                           className={cn(
-                            "text-[10px] font-medium px-1.5 py-0.2 rounded-full",
+                            "text-xs font-semibold px-2 py-0.5 rounded-full",
                             module.badgeColor
                           )}
                         >
@@ -617,7 +537,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                         </span>
                       )}
                       {isCurrent && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#175CD3] shrink-0"></span>
                       )}
                     </>
                   )}
@@ -627,13 +547,56 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
           </div>
         )}
 
-        {/* System Masters & Data Dropdowns */}
-        {filteredDropdowns.length > 0 && (
+        {/* System Masters & Data */}
+        {(isMastersMatch || filteredDropdowns.length > 0) && (
           <div className="space-y-1">
             {!collapsed && (
-              <div className="px-2.5 mb-1.5 text-[10.5px] font-semibold text-[#86868B] uppercase tracking-wider">
+              <div className="px-3.5 mb-2 mt-5 text-xs font-bold text-[#475467] uppercase tracking-wider">
                 System Masters & Data
               </div>
+            )}
+
+            {/* Master Data - Single Hub Link (matches reference screenshot) */}
+            {isMastersMatch && (
+              <button
+                onClick={() => {
+                  setActiveModule("masters");
+                  setOpenSubmenu(null);
+                  router.push("/masters");
+                }}
+                title={collapsed ? "Master Data" : undefined}
+                className={cn(
+                  "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all group text-left",
+                  activeModule === "masters" || currentPath.startsWith("/masters")
+                    ? "bg-[#EFF8FF] text-[#175CD3] shadow-xs font-semibold"
+                    : "text-[#344054] hover:bg-[#F8F9FC] hover:text-[#101828]"
+                )}
+              >
+                <div className="flex items-center gap-3 truncate">
+                  <Database
+                    className={cn(
+                      "w-5 h-5 shrink-0 transition-colors",
+                      activeModule === "masters" || currentPath.startsWith("/masters")
+                        ? "text-[#175CD3]"
+                        : "text-[#475467] group-hover:text-[#101828]"
+                    )}
+                  />
+                  {!collapsed && <span className="truncate font-medium">Master Data</span>}
+                </div>
+
+                {!collapsed && (
+                  <span
+                    className={cn(
+                      "text-xs font-semibold px-2 py-0.5 rounded-full",
+                      activeModule === "masters" || currentPath.startsWith("/masters")
+                        ? "bg-[#175CD3] text-white"
+                        : "bg-[#F2F4F7] text-[#475467]"
+                    )}
+                  >
+                    12
+                  </span>
+                )}
+              </button>
             )}
 
             {filteredDropdowns.map((dropdown) => {
@@ -650,32 +613,32 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                   onClick={() => toggleSubmenu(dropdown.id)}
                   title={collapsed ? dropdown.label : undefined}
                   className={cn(
-                    "flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium cursor-pointer transition-colors group",
+                    "flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-colors group",
                     isAnySubActive
-                      ? "text-[#007AFF] bg-[#E8F2FE]/50 font-semibold"
-                      : "text-[#1D1D1F] hover:bg-[#EBEBF0]/70"
+                      ? "text-[#175CD3] bg-[#EFF8FF]/70 font-semibold"
+                      : "text-[#344054] hover:bg-[#F8F9FC] hover:text-[#101828]"
                   )}
                 >
-                  <div className="flex items-center gap-2.5 truncate">
+                  <div className="flex items-center gap-3 truncate">
                     <Icon
                       className={cn(
-                        "w-4 h-4 shrink-0 transition-colors",
+                        "w-5 h-5 shrink-0 transition-colors",
                         isAnySubActive
-                          ? "text-[#007AFF]"
-                          : "text-[#6E6E73] group-hover:text-[#1D1D1F]"
+                          ? "text-[#175CD3]"
+                          : "text-[#475467] group-hover:text-[#101828]"
                       )}
                     />
-                    {!collapsed && <span className="truncate">{dropdown.label}</span>}
+                    {!collapsed && <span className="truncate font-medium">{dropdown.label}</span>}
                   </div>
 
                   {!collapsed && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] text-[#86868B] bg-white border border-[#E5E5EA] px-1.5 py-0.2 rounded-full">
+                      <span className="text-xs text-[#475467] font-semibold bg-[#F2F4F7] px-2 py-0.5 rounded-full">
                         {dropdown.items.length}
                       </span>
                       <ChevronDown
                         className={cn(
-                          "w-3.5 h-3.5 text-[#86868B] transition-transform duration-200",
+                          "w-3.5 h-3.5 text-[#475467] transition-transform duration-200",
                           isOpen ? "rotate-0" : "-rotate-90"
                         )}
                       />
@@ -692,7 +655,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                       opacity: isOpen ? 1 : 0,
                     }}
                   >
-                    <div className="min-h-0 pl-5 pr-1 pt-0.5 space-y-0.5 border-l border-[#E5E5EA] ml-4 mt-0.5">
+                    <div className="min-h-0 pl-4 pr-1 pt-1 space-y-0.5 border-l border-[#EAECF0] ml-4 mt-0.5">
                     {dropdown.items.map((subItem: any, idx: number) => {
                       const isSubActive = activeModule === subItem.id;
                       const SubIcon = subItem.icon || CircleDot;
@@ -702,9 +665,9 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                           {subItem.sectionHeader && (
                             <div
                               className={cn(
-                                "text-[9.5px] font-bold tracking-wider px-2 pt-2.5 pb-1 flex items-center gap-1.5 uppercase select-none",
-                                subItem.sectionColor || "text-[#86868B]",
-                                idx > 0 && "border-t border-[#E5E5EA]/70 mt-1"
+                                "text-[11px] font-bold tracking-wider px-2 pt-2.5 pb-1 flex items-center gap-1.5 uppercase",
+                                subItem.sectionColor || "text-[#667085]",
+                                idx > 0 && "border-t border-[#EAECF0] mt-1"
                               )}
                             >
                               {subItem.sectionIcon && (
@@ -715,21 +678,28 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                           )}
 
                           <div
-                            onClick={() => setActiveModule(subItem.id)}
+                            onClick={() => {
+                              setActiveModule(subItem.id);
+                              if (subItem.href) {
+                                router.push(subItem.href);
+                              } else if (dropdown.id === "masters") {
+                                router.push(`/masters/${subItem.id}`);
+                              }
+                            }}
                             className={cn(
-                              "flex items-center justify-between text-[11px] py-1.5 px-2 rounded-lg cursor-pointer transition-colors group/sub",
+                              "flex items-center justify-between text-[13px] font-medium py-2 px-3 rounded-lg cursor-pointer transition-colors group/sub",
                               isSubActive
-                                ? "bg-[#007AFF] text-white font-medium shadow-xs"
-                                : "text-[#48484A] hover:text-[#007AFF] hover:bg-[#EBEBF0]/60"
+                                ? "bg-[#EFF8FF] text-[#175CD3] font-semibold"
+                                : "text-[#475467] hover:text-[#175CD3] hover:bg-[#F8F9FC]"
                             )}
                           >
-                            <div className="flex items-center gap-2 truncate">
+                            <div className="flex items-center gap-2.5 truncate">
                               <SubIcon
                                 className={cn(
-                                  "w-3.5 h-3.5 shrink-0 transition-colors",
+                                  "w-4 h-4 shrink-0 transition-colors",
                                   isSubActive
-                                    ? "text-white"
-                                    : subItem.iconColor || "text-[#86868B] group-hover/sub:text-[#007AFF]"
+                                    ? "text-[#175CD3]"
+                                    : subItem.iconColor || "text-[#667085] group-hover/sub:text-[#175CD3]"
                                 )}
                               />
                               <span className="truncate">{subItem.label}</span>
@@ -738,10 +708,10 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
                             {subItem.badge && (
                               <span
                                 className={cn(
-                                  "text-[9px] font-semibold px-1.5 py-0.2 rounded shrink-0",
+                                  "text-[10px] font-semibold px-2 py-0.5 rounded shrink-0",
                                   isSubActive
-                                    ? "bg-white/20 text-white"
-                                    : subItem.badgeColor || "bg-[#F2F2F7] text-[#86868B]"
+                                    ? "bg-[#175CD3] text-white"
+                                    : subItem.badgeColor || "bg-[#F2F4F7] text-[#475467]"
                                 )}
                               >
                                 {subItem.badge}

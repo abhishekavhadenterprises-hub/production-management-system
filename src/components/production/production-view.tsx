@@ -32,12 +32,13 @@ import {
   convertBookingToProductionRecord,
 } from "@/lib/production-mock-data";
 import { INITIAL_BOOKINGS } from "@/lib/scheduler-mock-data";
-import { ProdsyncTopNav } from "@/components/layout/prodsync-top-nav";
 import { OperatorLogModal } from "./operator-log-modal";
 import { SupervisorConfirmModal } from "./supervisor-confirm-modal";
+import { usePersistentState } from "@/lib/use-persistent-state";
 
 export function ProductionView() {
-  const [records, setRecords] = useState<ProductionRecord[]>(
+  const [records, setRecords] = usePersistentState<ProductionRecord[]>(
+    "prodsync_production_records",
     INITIAL_PRODUCTION_RECORDS
   );
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -305,10 +306,7 @@ export function ProductionView() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F5F5F7] select-none text-[#1D1D1F]">
-      {/* Top PRODSYNC Header Navigation Bar */}
-      <ProdsyncTopNav />
-
+    <div className="flex flex-col min-h-screen bg-[#F5F5F7] text-[#1D1D1F]">
       {/* Toast Alert */}
       {successToast && (
         <div className="fixed bottom-5 right-5 z-50 bg-[#1D1D1F] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-150">

@@ -27,7 +27,7 @@ import { BookingModal } from "./booking-modal";
 import { BookingDetailDrawer } from "./booking-detail-drawer";
 import { ImportWorkOrdersModal } from "./import-work-orders-modal";
 import { MobileSchedulerList } from "./mobile-scheduler-list";
-import { ProdsyncTopNav } from "@/components/layout/prodsync-top-nav";
+import { usePersistentState } from "@/lib/use-persistent-state";
 
 export function MachineSchedulerView() {
   // Main Workspace State
@@ -39,10 +39,19 @@ export function MachineSchedulerView() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isQueueCollapsed, setIsQueueCollapsed] = useState<boolean>(false);
 
-  // Domain Entities State
-  const [machines, setMachines] = useState<Machine[]>(INITIAL_MACHINES);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(INITIAL_WORK_ORDERS);
-  const [bookings, setBookings] = useState<JobBooking[]>(INITIAL_BOOKINGS);
+  // Domain Entities State (Persisted across reloads and route navigation)
+  const [machines, setMachines] = usePersistentState<Machine[]>(
+    "prodsync_scheduler_machines",
+    INITIAL_MACHINES
+  );
+  const [workOrders, setWorkOrders] = usePersistentState<WorkOrder[]>(
+    "prodsync_scheduler_work_orders",
+    INITIAL_WORK_ORDERS
+  );
+  const [bookings, setBookings] = usePersistentState<JobBooking[]>(
+    "prodsync_active_bookings",
+    INITIAL_BOOKINGS
+  );
 
   // Sync scheduled and running jobs with Production view
   useEffect(() => {
@@ -501,9 +510,6 @@ export function MachineSchedulerView() {
 
   return (
     <div className="flex flex-col h-screen bg-[#F5F5F7] overflow-hidden select-none">
-      {/* Top PRODSYNC Header Navigation Bar */}
-      <ProdsyncTopNav />
-
       {/* Top Toolbar */}
       <SchedulerToolbar
         selectedDate={selectedDate}

@@ -32,10 +32,14 @@ import {
   BopPartItem,
   INITIAL_BOP_WORK_ORDERS,
 } from "@/lib/bop-transfer-mock-data";
+import { usePersistentState } from "@/lib/use-persistent-state";
 
 export function BopTransferView() {
-  // Orders State
-  const [orders, setOrders] = useState<BopWorkOrder[]>(INITIAL_BOP_WORK_ORDERS);
+  // Orders State (Persisted across reloads and route navigation)
+  const [orders, setOrders] = usePersistentState<BopWorkOrder[]>(
+    "prodsync_bop_work_orders",
+    INITIAL_BOP_WORK_ORDERS
+  );
   const [selectedWoId, setSelectedWoId] = useState<string>("bop-6"); // Row 6 (Hitachi) highlighted as in screenshot
   const [dateFilter, setDateFilter] = useState<string>("");
   const [customerFilter, setCustomerFilter] = useState<string>("All Customers");
@@ -49,7 +53,10 @@ export function BopTransferView() {
 
   // Toast / Confirmation notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [transfersTodayCount, setTransfersTodayCount] = useState<number>(0);
+  const [transfersTodayCount, setTransfersTodayCount] = usePersistentState<number>(
+    "prodsync_bop_transfers_today",
+    0
+  );
 
   // Dynamic lists for filters
   const customerList = useMemo(() => {
@@ -164,7 +171,7 @@ export function BopTransferView() {
   };
 
   return (
-    <div className="apple-bop-transfer-page min-h-screen bg-[#F5F5F7] text-[#1D1D1F] pb-12 select-none">
+    <div className="apple-bop-transfer-page min-h-screen bg-[#F5F5F7] text-[#1D1D1F] pb-12">
       <Head>
         <title>BOP Transfer - PRODSYNC Operations</title>
         <meta

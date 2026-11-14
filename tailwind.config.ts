@@ -56,11 +56,9 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
+          "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
-          "\"SF Pro Text\"",
-          "\"SF Pro Display\"",
-          "\"SF Pro\"",
           "system-ui",
           "\"Segoe UI\"",
           "Roboto",

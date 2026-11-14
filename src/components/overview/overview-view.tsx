@@ -383,34 +383,34 @@ export function OverviewView() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] select-none pb-12">
+    <div className="min-h-screen bg-[#F8F9FC] text-[#101828] pb-12 font-sans">
       {/* Toast Notification */}
       {transferToast && (
-        <div className="fixed top-4 right-4 z-50 bg-[#1D1D1F] text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-apple-dropdown flex items-center gap-2 border border-white/10 animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckCircle2 className="w-4 h-4 text-[#34C759] shrink-0" />
+        <div className="fixed top-4 right-4 z-50 bg-[#101828] text-white text-xs font-medium px-4 py-3 rounded-2xl shadow-apple-dropdown flex items-center gap-2 border border-white/10 animate-in fade-in slide-in-from-top-4 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-[#12B76A] shrink-0" />
           <span>{transferToast}</span>
         </div>
       )}
 
       {/* Top Header & Filters Bar */}
-      <div className="bg-white border-b border-[#E5E5EA] px-4 sm:px-8 py-3.5 sticky top-0 z-30 shadow-2xs">
+      <div className="bg-white border-b border-[#EAECF0] px-4 sm:px-8 py-4 sticky top-0 z-30 shadow-2xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Title & Live Status */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#007AFF] text-white flex items-center justify-center font-bold shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#EFF4FF] text-[#155EEF] flex items-center justify-center font-bold shadow-xs">
               <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1D1D1F]">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-2xl font-bold tracking-tight text-[#101828]">
                   Dashboard
                 </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#EAF8EF] text-[#1E823B] border border-[#C3EED3]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-[#ECFDF3] text-[#027A48] border border-[#ABEFC6]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
                   <span>LIVE TRACKING</span>
                 </span>
               </div>
-              <p className="text-[11px] text-[#86868B] truncate mt-0.5">
+              <p className="text-sm text-[#475467] font-normal truncate mt-0.5 leading-relaxed">
                 Zonewise Real-Time Virtual Box Inventory, Process Throughput & Assembly Traceability
               </p>
             </div>
@@ -554,25 +554,25 @@ export function OverviewView() {
           {/* Subheader bar */}
           <div className="flex items-center justify-between text-xs px-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF8EF] text-[#1E823B] border border-[#C3EED3]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-[#ECFDF3] text-[#027A48] border border-[#ABEFC6]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A] animate-pulse" />
                 <span>LIVE VIRTUAL BOX INVENTORY</span>
               </span>
-              <span className="text-[10px] font-mono text-[#86868B] uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[#475467]">
                 (6 Connected Stations)
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-[#6E6E73]">
-              <span className="text-[#86868B] font-medium">Traceability:</span>
-              <div className="inline-flex bg-white border border-[#E5E5EA] rounded-lg p-0.5 text-[10px]">
+            <div className="flex items-center gap-1.5 text-xs text-[#475467]">
+              <span className="font-medium text-[#344054]">Traceability:</span>
+              <div className="inline-flex bg-white border border-[#EAECF0] rounded-lg p-0.5 text-xs">
                 <button
                   onClick={() => setTraceabilityMode("assembly")}
                   className={cn(
-                    "px-2 py-0.5 rounded font-medium transition-colors",
+                    "px-2.5 py-1 rounded font-medium transition-colors text-xs",
                     traceabilityMode === "assembly"
-                      ? "bg-[#007AFF] text-white"
-                      : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                      ? "bg-[#155EEF] text-white"
+                      : "text-[#475467] hover:text-[#101828]"
                   )}
                 >
                   Assembly
@@ -580,10 +580,10 @@ export function OverviewView() {
                 <button
                   onClick={() => setTraceabilityMode("bop")}
                   className={cn(
-                    "px-2 py-0.5 rounded font-medium transition-colors",
+                    "px-2.5 py-1 rounded font-medium transition-colors text-xs",
                     traceabilityMode === "bop"
-                      ? "bg-[#007AFF] text-white"
-                      : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                      ? "bg-[#155EEF] text-white"
+                      : "text-[#475467] hover:text-[#101828]"
                   )}
                 >
                   BOP
@@ -591,10 +591,10 @@ export function OverviewView() {
                 <button
                   onClick={() => setTraceabilityMode("process")}
                   className={cn(
-                    "px-2 py-0.5 rounded font-medium transition-colors",
+                    "px-2.5 py-1 rounded font-medium transition-colors text-xs",
                     traceabilityMode === "process"
-                      ? "bg-[#007AFF] text-white"
-                      : "text-[#6E6E73] hover:text-[#1D1D1F]"
+                      ? "bg-[#155EEF] text-white"
+                      : "text-[#475467] hover:text-[#101828]"
                   )}
                 >
                   Process
@@ -604,7 +604,7 @@ export function OverviewView() {
           </div>
 
           {/* 7 Inventory Cards Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3.5">
             {virtualBoxes.map((box) => {
               const isSelected = activeZoneId === box.id;
 
@@ -613,50 +613,50 @@ export function OverviewView() {
                   key={box.id}
                   onClick={() => setActiveZoneId(box.id)}
                   className={cn(
-                    "p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group",
+                    "p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group",
                     isSelected
-                      ? "bg-white border-[#007AFF] ring-2 ring-[#007AFF]/20 shadow-apple-card"
-                      : "bg-white border-[#E5E5EA] hover:border-[#D1D1D6] hover:shadow-xs"
+                      ? "bg-white border-[#155EEF] ring-2 ring-[#155EEF]/20 shadow-md"
+                      : "bg-white border-[#EAECF0] hover:border-[#155EEF]/50 shadow-xs hover:shadow-md"
                   )}
                 >
                   <div>
                     {/* Top row: badge + lines */}
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="px-1.5 py-0.5 rounded bg-[#F2F2F7] text-[10px] font-mono font-bold text-[#6E6E73]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2 py-0.5 rounded-md bg-[#F2F4F7] text-[10px] font-mono font-bold text-[#344054]">
                         {box.shortCode}
                       </span>
-                      <span className="text-[10px] text-[#86868B] font-mono">
+                      <span className="text-[11px] text-[#475467] font-medium">
                         {box.linesCount} lines
                       </span>
                     </div>
 
-                    <div className="text-xs font-semibold text-[#1D1D1F] line-clamp-2 leading-tight">
+                    <div className="text-[13px] font-semibold text-[#101828] line-clamp-2 leading-snug">
                       {box.title}
                     </div>
 
                     {/* Numeric Count */}
-                    <div className="mt-2.5 font-mono text-2xl font-bold tracking-tight text-[#1D1D1F]">
+                    <div className="mt-2.5 text-2xl font-bold tracking-tight text-[#101828] font-sans">
                       {box.totalQty.toLocaleString()}
                     </div>
 
                     {/* Sub-breakdown if present (Good vs NG) */}
                     {box.goodQty !== undefined && box.ngQty !== undefined && (
-                      <div className="mt-1 flex items-center gap-2 text-[10px] font-mono">
-                        <span className="text-[#34C759] font-semibold flex items-center gap-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#34C759]" />
+                      <div className="mt-1.5 flex items-center gap-2 text-[11px] font-medium">
+                        <span className="text-[#027A48] flex items-center gap-1 font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#12B76A]" />
                           {box.goodQty}
                         </span>
-                        <span className="text-[#FF3B30] font-semibold flex items-center gap-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B30]" />
+                        <span className="text-[#D92D20] flex items-center gap-1 font-semibold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#F04438]" />
                           {box.ngQty}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-[#F2F2F7] flex items-center justify-between text-[10px] text-[#007AFF] font-medium group-hover:underline">
-                    <span>Click for detail</span>
-                    <ArrowRight className="w-2.5 h-2.5" />
+                  <div className="mt-3.5 pt-2.5 border-t border-[#F2F4F7] flex items-center justify-between text-xs text-[#155EEF] font-semibold group-hover:text-[#175CD3]">
+                    <span>Configure</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
               );

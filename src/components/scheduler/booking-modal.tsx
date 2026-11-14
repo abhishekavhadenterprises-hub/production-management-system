@@ -72,11 +72,31 @@ export function BookingModal({
 
   // Form Timing & Shift
   const [quantity, setQuantity] = useState<number>(
-    prefillComponent?.remainingQty || 120
+    prefillComponent?.remainingQty || prefillWo?.orderedQty || 120
   );
   const [shift, setShift] = useState<"Shift A" | "Shift B">("Shift A");
   const [bookingDate, setBookingDate] = useState<string>(prefillDate);
   const [startTime, setStartTime] = useState<string>(prefillStartTime);
+
+  // Editable Customer & Work Order Specifications
+  const [customerName, setCustomerName] = useState<string>(
+    prefillWo?.customer || "Godrej Appliances (Godrej & Boyce Mfg)"
+  );
+  const [woNumber, setWoNumber] = useState<string>(
+    prefillWo?.woNumber || "WO-1036"
+  );
+  const [assemblyCode, setAssemblyCode] = useState<string>(
+    prefillWo?.assemblyCode || "ASSY-GOD-1009"
+  );
+  const [assemblyName, setAssemblyName] = useState<string>(
+    prefillWo?.assembly || "HVAC 4-Branch Copper Header Manifold Assembly"
+  );
+  const [componentCode, setComponentCode] = useState<string>(
+    prefillComponent?.code || prefillWo?.components[0]?.code || "BR-GOD-1009-D"
+  );
+  const [componentName, setComponentName] = useState<string>(
+    prefillComponent?.name || prefillWo?.components[0]?.name || "Induction Brazing Ring BCuP-5"
+  );
 
   // Maintenance Dates
   const [lastMaintenanceDate, setLastMaintenanceDate] = useState<string>("31/08/2026");
@@ -112,10 +132,18 @@ export function BookingModal({
     if (prefillMachine) {
       setSelectedMachineId(prefillMachine.id);
     }
-    if (prefillWo && prefillWo.components.length > 0) {
-      const activeComp = prefillComponent || prefillWo.components[0];
-      setSelectedComponentId(activeComp.id);
-      setQuantity(activeComp.remainingQty || prefillWo.orderedQty || 120);
+    if (prefillWo) {
+      setCustomerName(prefillWo.customer);
+      setWoNumber(prefillWo.woNumber);
+      setAssemblyCode(prefillWo.assemblyCode);
+      setAssemblyName(prefillWo.assembly);
+      if (prefillWo.components.length > 0) {
+        const activeComp = prefillComponent || prefillWo.components[0];
+        setSelectedComponentId(activeComp.id);
+        setComponentCode(activeComp.code);
+        setComponentName(activeComp.name);
+        setQuantity(activeComp.remainingQty || prefillWo.orderedQty || 120);
+      }
     }
     if (prefillStartTime) {
       setStartTime(prefillStartTime);
@@ -124,6 +152,17 @@ export function BookingModal({
       setBookingDate(prefillDate);
     }
   }, [prefillMachine, prefillWo, prefillComponent, prefillStartTime, prefillDate]);
+
+  // When selected component changes
+  const handleComponentChange = (compId: string) => {
+    setSelectedComponentId(compId);
+    const comp = prefillWo?.components.find((c) => c.id === compId);
+    if (comp) {
+      setComponentCode(comp.code);
+      setComponentName(comp.name);
+      setQuantity(comp.remainingQty || prefillWo?.orderedQty || 120);
+    }
+  };
 
   // When selected operator changes, auto-fill name and EMP ID
   const handleOperatorChange = (opId: string) => {
@@ -236,10 +275,10 @@ export function BookingModal({
     const newBooking: JobBooking = {
       id: `b-${Date.now()}`,
       woId: prefillWo?.id || "wo-manual",
-      woNumber: prefillWo?.woNumber || "WO-1006",
-      customer: prefillWo?.customer || "Voltas Engineering & Cooling Systems",
-      componentCode: activeComponent?.code || "CH-VOL-1007-A",
-      componentName: activeComponent?.name || "Oil Return U-Tube Bend",
+      woNumber: woNumber || "WO-1006",
+      customer: customerName || "Voltas Engineering & Cooling Systems",
+      componentCode: componentCode || activeComponent?.code || "CH-VOL-1007-A",
+      componentName: componentName || activeComponent?.name || "Oil Return U-Tube Bend",
       operation: activeComponent?.operation || "CNC Rotary Draw Bending",
       machineId: selectedMachineId,
       machineCode: currentMachine?.code || "CNC-TB-01",
@@ -274,7 +313,7 @@ export function BookingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-3 sm:p-5 select-none overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl border border-[#E5E5EA] w-full max-w-4xl overflow-hidden flex flex-col my-auto max-h-[94vh] animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Top Bar */}
         <div className="px-6 py-3.5 border-b border-[#E5E5EA] flex items-center justify-between bg-[#F8F9FA]">
@@ -303,104 +342,141 @@ export function BookingModal({
 
         {/* Modal Scrollable Body */}
         <div className="p-5 sm:p-6 overflow-y-auto space-y-4 custom-scrollbar text-xs">
-          {/* SECTION 1: Readonly Header & Order Specification Card */}
+          {/* SECTION 1: Editable Order Specification Card */}
           <div className="p-4 rounded-xl bg-[#F8F9FA] border border-[#E5E5EA] space-y-2.5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-[11px]">
-              {/* Customer Name */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Customer Name (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Building2 className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Customer Name</span>
                 </span>
-                <span className="font-bold text-[#1D1D1F] text-right truncate max-w-[260px]">
-                  {prefillWo?.customer || "Voltas Engineering & Cooling Systems"}
-                </span>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full max-w-[260px] px-2.5 py-1 text-xs font-semibold text-[#1D1D1F] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                />
               </div>
 
-              {/* Work Order No & Date */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Work Order No & Date (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <FileSpreadsheet className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Work Order No & Date</span>
                 </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <span className="px-2 py-0.5 rounded bg-[#007AFF] text-white font-mono font-bold text-[10.5px]">
-                    {prefillWo?.woNumber || "WO-1006"}
-                  </span>
-                  <span className="text-[#6E6E73] text-[10.5px]">
-                    (Date: {prefillWo?.date || "29/08/2026"})
-                  </span>
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={woNumber}
+                    onChange={(e) => setWoNumber(e.target.value)}
+                    className="w-24 px-2 py-0.5 rounded bg-white text-[#007AFF] border border-[#007AFF]/40 font-mono font-bold text-[11px] outline-none focus:border-[#007AFF]"
+                  />
+                  <span className="text-[#6E6E73] text-[10px]">(Date:</span>
+                  <input
+                    type="text"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                    className="w-24 px-2 py-0.5 rounded bg-white text-[#1D1D1F] border border-[#D1D1D6] font-mono text-[10.5px] outline-none focus:border-[#007AFF]"
+                  />
+                  <span className="text-[#6E6E73] text-[10px]">)</span>
+                </div>
               </div>
 
-              {/* Work Order Quantity */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Work Order Quantity (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Package className="w-3.5 h-3.5 text-[#007AFF]" />
-                  <span>Work Order Quantity</span>
+                  <span>Schedule Quantity</span>
                 </span>
-                <span className="font-semibold text-[#1D1D1F]">
-                  <strong className="font-mono text-[#007AFF]">{prefillWo?.orderedQty || 120} units</strong>{" "}
-                  <span className="text-[#86868B] font-normal">
-                    (Unscheduled: {prefillWo?.unscheduledQty || 0})
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                    className="w-24 px-2.5 py-1 text-xs font-mono font-bold text-[#007AFF] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                  />
+                  <span className="text-[#86868B] text-[10.5px]">
+                    units (Unscheduled: {Math.max(0, (prefillWo?.orderedQty || 120) - quantity)})
                   </span>
-                </span>
+                </div>
               </div>
 
-              {/* Assembly Code */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Assembly Code (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Layers className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Assembly Code</span>
                 </span>
-                <span className="font-mono font-bold text-[#1D1D1F]">
-                  {prefillWo?.assemblyCode || "ASSY-VOL-1007"}
-                </span>
+                <input
+                  type="text"
+                  value={assemblyCode}
+                  onChange={(e) => setAssemblyCode(e.target.value)}
+                  className="w-full max-w-[260px] px-2.5 py-1 text-xs font-mono font-bold text-[#1D1D1F] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                />
               </div>
 
-              {/* Assembly Name */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Assembly Name (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Tag className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Assembly Name</span>
                 </span>
-                <span className="font-semibold text-[#1D1D1F] text-right truncate max-w-[260px]" title={prefillWo?.assembly}>
-                  {prefillWo?.assembly || "Oil Separator Return Line Assembly"}
-                </span>
+                <input
+                  type="text"
+                  value={assemblyName}
+                  onChange={(e) => setAssemblyName(e.target.value)}
+                  className="w-full max-w-[260px] px-2.5 py-1 text-xs font-medium text-[#1D1D1F] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                />
               </div>
 
-              {/* Child Part Code */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Child Part Code (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <CircleDot className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Child Part Code</span>
                 </span>
-                <span className="font-mono font-bold text-[#007AFF]">
-                  {activeComponent?.code || "CH-VOL-1007-A"}
-                </span>
+                <input
+                  type="text"
+                  value={componentCode}
+                  onChange={(e) => setComponentCode(e.target.value)}
+                  className="w-full max-w-[260px] px-2.5 py-1 text-xs font-mono font-bold text-[#007AFF] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                />
               </div>
 
-              {/* Child Part Name */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Child Part Name (Editable) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Tag className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Child Part Name</span>
                 </span>
-                <span className="font-semibold text-[#1D1D1F] text-right truncate max-w-[260px]" title={activeComponent?.name}>
-                  {activeComponent?.name || "Oil Return U-Tube Bend"}
-                </span>
+                <input
+                  type="text"
+                  value={componentName}
+                  onChange={(e) => setComponentName(e.target.value)}
+                  className="w-full max-w-[260px] px-2.5 py-1 text-xs font-medium text-[#1D1D1F] bg-white border border-[#D1D1D6] rounded-lg focus:border-[#007AFF] outline-none text-right"
+                />
               </div>
 
-              {/* Machine No. & Name + Thumbnail */}
-              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0]">
-                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px]">
+              {/* Machine No. & Name (Editable Selection) */}
+              <div className="flex items-center justify-between py-1 border-b border-[#EBEBF0] gap-2">
+                <span className="text-[#86868B] font-semibold flex items-center gap-1.5 uppercase text-[10px] shrink-0">
                   <Cpu className="w-3.5 h-3.5 text-[#007AFF]" />
                   <span>Machine No. & Name</span>
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-[#1D1D1F] text-right truncate max-w-[200px]">
-                    {currentMachine.code} - {currentMachine.name}
-                  </span>
+                <div className="flex items-center gap-2 max-w-[260px] w-full justify-end">
+                  <select
+                    value={selectedMachineId}
+                    onChange={(e) => setSelectedMachineId(e.target.value)}
+                    className="w-full text-xs font-semibold text-[#1D1D1F] bg-white border border-[#D1D1D6] rounded-lg px-2 py-1 outline-none focus:border-[#007AFF] cursor-pointer"
+                  >
+                    {machines.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.code} - {m.name}
+                      </option>
+                    ))}
+                  </select>
                   <div className="w-6 h-6 rounded bg-[#E5E5EA] border border-[#D1D1D6] flex items-center justify-center shrink-0" title="Machine Image">
                     <ImageIcon className="w-3.5 h-3.5 text-[#6E6E73]" />
                   </div>
@@ -525,7 +601,7 @@ export function BookingModal({
               </label>
               <PremiumDropdown
                 value={selectedComponentId}
-                onChange={setSelectedComponentId}
+                onChange={handleComponentChange}
                 options={(prefillWo?.components || []).map((c) => ({
                   value: c.id,
                   label: `${c.code} - ${c.name}`,
