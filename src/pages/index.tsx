@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Dashboard Zone - J Pan Tubular Enterprise Operations</title>
+        <title>Dashboard - J Pan Tubular Enterprise Operations</title>
         <meta
           name="description"
           content="Zonewise Real-Time Virtual Box Inventory, Process Throughput & Assembly Traceability"

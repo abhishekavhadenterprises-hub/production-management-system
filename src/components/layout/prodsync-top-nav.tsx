@@ -61,7 +61,7 @@ export function ProdsyncTopNav() {
       active: false,
     },
     {
-      label: "Dashboard Zone",
+      label: "Dashboard",
       href: "/",
       icon: LayoutGrid,
       active: currentPath === "/",

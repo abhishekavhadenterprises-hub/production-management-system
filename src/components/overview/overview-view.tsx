@@ -403,7 +403,7 @@ export function OverviewView() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1D1D1F]">
-                  Dashboard Zone
+                  Dashboard
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#EAF8EF] text-[#1E823B] border border-[#C3EED3]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] animate-pulse" />

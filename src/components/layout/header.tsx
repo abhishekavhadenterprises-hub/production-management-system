@@ -229,7 +229,7 @@ export function Header({ period, onPeriodChange, onToggleSidebar }: HeaderProps)
                   }}
                   className="w-full text-left px-3 py-2 text-xs text-[#1D1D1F] hover:bg-[#F5F5F7] rounded-lg transition-colors"
                 >
-                  Dashboard Zone
+                  Dashboard
                 </button>
               </div>
             </>

@@ -125,7 +125,7 @@ export interface JobBooking {
   virtualBoxStage?: "VB1" | "VB2" | "VB3" | "VB4";
 }
 
-export interface TimeSlot {
+export interface TimeSlot { 
   id: string;
   timeLabel: string;
   startHour: string;

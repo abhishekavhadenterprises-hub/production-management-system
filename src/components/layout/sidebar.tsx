@@ -110,7 +110,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse, className }: Side
   const primaryModules = [
     {
       id: "overview",
-      label: "Dashboard Zone",
+      label: "Dashboard",
       icon: LayoutDashboard,
       badge: "Live",
       badgeColor: "bg-[#EAF8EF] text-[#1E823B]",
